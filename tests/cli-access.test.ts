@@ -35,4 +35,9 @@ describe('CliAccess.move', () => {
     expect(m).toEqual({ from: 'a.md', to: 'b.md', linksUpdated: true })
     expect(runMock).toHaveBeenCalledWith('obsidian', ['move', 'path=a.md', 'to=b.md'], { cwd: '/tmp/vault' })
   })
+
+  it('move rejects a path escaping the vault', async () => {
+    const a = new CliAccess('/tmp/vault', [])
+    await expect(a.move('../secret.md', 'b.md')).rejects.toThrow(/escapes/)
+  })
 })

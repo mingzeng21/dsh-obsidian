@@ -56,4 +56,9 @@ describe('searchVault', () => {
     const hits = await searchVault(v, [], 'a.b')
     expect(hits.map((h) => h.lineText)).toEqual(['literal a.b here'])
   })
+
+  it('rejects a dir escaping the vault', async () => {
+    const v = await makeVault()
+    await expect(searchVault(v, [], 'x', { dir: '../secret' })).rejects.toThrow(/escapes/)
+  })
 })

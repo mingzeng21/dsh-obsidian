@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { readFile, readdir } from 'node:fs/promises'
 import { run, binaryAvailable } from './spawn.js'
+import { guardPath } from './vault-path.js'
 import type { SearchHit } from './access.js'
 
 export interface SearchOptions { dir?: string; context?: number; limit?: number }
@@ -14,7 +15,7 @@ export async function searchVault(
 ): Promise<SearchHit[]> {
   const context = opts.context ?? 1
   const limit = opts.limit ?? 50
-  const base = opts.dir ? path.join(vaultRoot, opts.dir) : vaultRoot
+  const base = opts.dir ? guardPath(vaultRoot, opts.dir) : vaultRoot
   const matches = await rawMatches(base, excludeDirs, query)
   matches.sort((a, b) => (a.file === b.file ? a.line - b.line : a.file < b.file ? -1 : 1))
   const hits: SearchHit[] = []

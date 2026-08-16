@@ -1,8 +1,17 @@
 import { detectVaultRootFromAppConfig, resolveVaultRoot } from './vault-path.js'
-import { binaryAvailable } from './spawn.js'
+import { run } from './spawn.js'
 import { FsAccess } from './fs-access.js'
 import { CliAccess } from './cli-access.js'
 import type { VaultAccess } from './access.js'
+
+async function obsidianCliAvailable(): Promise<boolean> {
+  try {
+    await run('obsidian', ['version'])
+    return true
+  } catch {
+    return false
+  }
+}
 
 export interface AccessConfig {
   vaultPath?: string
@@ -22,7 +31,7 @@ export interface SetupDeps {
 
 export async function setupAccess(
   config: AccessConfig,
-  deps: SetupDeps = { detectVaultRoot: detectVaultRootFromAppConfig, cliAvailable: () => binaryAvailable('obsidian') },
+  deps: SetupDeps = { detectVaultRoot: detectVaultRootFromAppConfig, cliAvailable: obsidianCliAvailable },
 ): Promise<AccessSetup> {
   const detected = await deps.detectVaultRoot()
   const vaultRoot = resolveVaultRoot(config.vaultPath, detected)
