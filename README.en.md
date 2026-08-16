@@ -65,7 +65,7 @@ dsh plugin --profile web remove dsh-obsidian
 | `obsidian_move` | Move/rename a note (updates links when the CLI is available) |
 | `obsidian_delete` | Trash a note into `.trash/` (reversible, never permanently deletes) |
 
-All tool path arguments are relative to the vault root (e.g. `TradeArena/deploy.md`).
+All tool path arguments are relative to the vault root (e.g. `Folder/note.md`).
 
 ## Safety
 

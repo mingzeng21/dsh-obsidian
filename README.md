@@ -65,7 +65,7 @@ dsh plugin --profile web remove dsh-obsidian
 | `obsidian_move` | 移动/重命名笔记（CLI 可用时同步更新链接） |
 | `obsidian_delete` | 把笔记移入 `.trash/`（可逆，绝不永久删除） |
 
-所有工具的路径参数都相对于 vault 根目录（例如 `TradeArena/部署流程.md`）。
+所有工具的路径参数都相对于 vault 根目录（例如 `Folder/Note.md`）。
 
 ## 安全性
 
