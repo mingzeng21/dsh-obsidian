@@ -1,3 +1,5 @@
+import type { JsonValue } from '@deepseek-ai/dsh-tools'
+
 export interface NoteRef { path: string; title: string }
 
 export interface SearchHit {
@@ -13,13 +15,13 @@ export interface Backlink { path: string; title: string; snippet: string }
 export interface ReadResult {
   path: string
   title: string
-  frontmatter: Record<string, unknown> | null
+  frontmatter: JsonValue | null
   content: string
 }
 
 export interface FrontmatterData {
   path: string
-  data: Record<string, unknown> | null
+  data: JsonValue | null
   raw: string | null
 }
 

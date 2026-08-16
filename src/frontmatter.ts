@@ -1,7 +1,8 @@
 import { parse as parseYaml } from 'yaml'
+import type { JsonValue } from '@deepseek-ai/dsh-tools'
 
 export interface ParsedNote {
-  data: Record<string, unknown> | null
+  data: JsonValue | null
   raw: string | null
   body: string
 }
@@ -12,11 +13,11 @@ export function parseFrontmatter(content: string): ParsedNote {
   const match = FRONTMATTER_RE.exec(content)
   if (!match) return { data: null, raw: null, body: content }
   const raw = match[1]
-  let data: Record<string, unknown> | null = null
+  let data: JsonValue | null = null
   try {
     const parsed = parseYaml(raw)
     if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      data = parsed as Record<string, unknown>
+      data = parsed as JsonValue
     }
   } catch {
     data = null
