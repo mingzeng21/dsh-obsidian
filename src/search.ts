@@ -67,7 +67,7 @@ async function rawMatches(base: string, excludeDirs: string[], query: string): P
 }
 
 async function rgMatches(base: string, excludeDirs: string[], query: string): Promise<RawMatch[]> {
-  const args = ['-n', '--no-heading', '--with-filename', '-e', query]
+  const args = ['-n', '-i', '--no-heading', '--with-filename', '-e', query]
   for (const d of excludeDirs) args.push('-g', `!**/${d}/**`)
   args.push(base)
   const { stdout } = await run('rg', args)
@@ -83,7 +83,7 @@ async function rgMatches(base: string, excludeDirs: string[], query: string): Pr
     const lineNo = Number(rest.slice(0, idx2))
     if (Number.isInteger(lineNo)) out.push({ file, line: lineNo })
   }
-  return out
+  return out.filter((m) => m.file.endsWith('.md'))
 }
 
 async function jsMatches(base: string, excludeDirs: string[], query: string): Promise<RawMatch[]> {

@@ -42,4 +42,11 @@ describe('searchVault', () => {
     const hits = await searchVault(v, [], 'ALPHA')
     expect(hits.length).toBe(3)
   })
+
+  it('excludes non-markdown files', async () => {
+    const v = await makeVault()
+    await writeFile(path.join(v, 'notes', 'data.json'), 'alpha json')
+    const hits = await searchVault(v, [], 'json')
+    expect(hits).toEqual([])
+  })
 })
