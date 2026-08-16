@@ -49,4 +49,11 @@ describe('searchVault', () => {
     const hits = await searchVault(v, [], 'json')
     expect(hits).toEqual([])
   })
+
+  it('treats the query as a literal substring, not a regex', async () => {
+    const v = await makeVault()
+    await writeFile(path.join(v, 'regex.md'), 'literal a.b here\nregex axb here\n')
+    const hits = await searchVault(v, [], 'a.b')
+    expect(hits.map((h) => h.lineText)).toEqual(['literal a.b here'])
+  })
 })
