@@ -19,8 +19,9 @@ export function rewriteNoteLinks(content: string, from: string, to: string): Lin
   const out = content.replace(WIKILINK_RE, (match, target: string, heading?: string, alias?: string) => {
     if (!linkTargetMatchesNote(target, from)) return match
     const newTarget = stripMd(target) === fromBase ? toBase : toPath
-    changed = true
-    return `[[${newTarget}${heading ?? ''}${alias ?? ''}]]`
+    const replacement = `[[${newTarget}${heading ?? ''}${alias ?? ''}]]`
+    if (replacement !== match) changed = true
+    return replacement
   })
   return { content: out, changed }
 }

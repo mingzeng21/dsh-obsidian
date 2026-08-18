@@ -59,6 +59,13 @@ describe('FsAccess', () => {
     expect(await readFile(path.join(tmp, 'archive', 'two.md'), 'utf8')).toContain('# Two')
   })
 
+  it('moves a note and updates links when the basename changes', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    const m = await a.move('notes/two.md', 'notes/renamed.md')
+    expect(m.linksUpdated).toBe(true)
+    expect(await readFile(path.join(tmp, 'notes', 'one.md'), 'utf8')).toContain('[[renamed]]')
+  })
+
   it('moves a note into .trash on delete', async () => {
     const a = new FsAccess(await makeVault(), [])
     const d = await a.delete('notes/two.md')

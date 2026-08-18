@@ -2,6 +2,7 @@ import path from 'node:path'
 import { mkdir, readFile, writeFile, rename, stat } from 'node:fs/promises'
 import { parseFrontmatter } from './frontmatter.js'
 import { extractLinkTargets, noteTitleFromPath, linkTargetMatchesNote } from './wikilink.js'
+import { rewriteNoteLinks } from './link-update.js'
 import { searchVault, walkMarkdownFiles } from './search.js'
 import { guardPath } from './vault-path.js'
 import type {
@@ -83,7 +84,16 @@ export class FsAccess implements VaultAccess {
     const toAbs = guardPath(this.vaultRoot, to)
     await mkdir(path.dirname(toAbs), { recursive: true })
     await rename(fromAbs, toAbs)
-    return { from: from.replace(/\\/g, '/'), to: to.replace(/\\/g, '/'), linksUpdated: false }
+    let linksUpdated = false
+    for (const file of await walkMarkdownFiles(this.vaultRoot, this.excludeDirs)) {
+      const content = await readFile(file, 'utf8')
+      const { content: next, changed } = rewriteNoteLinks(content, from, to)
+      if (changed) {
+        await writeFile(file, next, 'utf8')
+        linksUpdated = true
+      }
+    }
+    return { from: from.replace(/\\/g, '/'), to: to.replace(/\\/g, '/'), linksUpdated }
   }
 
   async delete(filePath: string): Promise<DeleteResult> {
