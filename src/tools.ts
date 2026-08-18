@@ -202,4 +202,71 @@ export function registerTools(ctx: Context, access: VaultAccess): void {
     },
     execute: (args) => access.delete(args.path),
   }))
+
+  ctx.tools.register(defineTool({
+    name: 'obsidian_set_property',
+    description: 'Set or update a single frontmatter property (YAML) on a note.',
+    parameters: {
+      path: { type: 'string', required: true, description: 'Path relative to the vault root.' },
+      key: { type: 'string', required: true, description: 'Property name.' },
+      value: { type: 'json', required: true, description: 'Property value (string, number, boolean, or list).' },
+    },
+    output: {
+      schema: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          path: { type: 'string', required: true },
+          data: { type: 'json', required: true },
+          raw: { type: 'json', required: true },
+        },
+      },
+      render: (_args: any, value: any) => [{ type: 'text', text: typeof value.raw === 'string' ? value.raw : JSON.stringify(value.raw) }],
+    },
+    execute: (args) => access.setProperty(args.path, args.key, args.value),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'obsidian_delete_property',
+    description: 'Remove a frontmatter property from a note.',
+    parameters: {
+      path: { type: 'string', required: true, description: 'Path relative to the vault root.' },
+      key: { type: 'string', required: true, description: 'Property name.' },
+    },
+    output: {
+      schema: {
+        type: 'object', additionalProperties: false,
+        properties: {
+          path: { type: 'string', required: true },
+          data: { type: 'json', required: true },
+          raw: { type: 'json', required: true },
+        },
+      },
+      render: (_args: any, value: any) => [{ type: 'text', text: typeof value.raw === 'string' ? value.raw : JSON.stringify(value.raw) }],
+    },
+    execute: (args) => access.deleteProperty(args.path, args.key),
+  }))
+
+  ctx.tools.register(defineTool({
+    name: 'obsidian_tags',
+    description: 'List all tags in the vault with usage counts.',
+    parameters: {
+      dir: { type: 'string', description: 'Subdirectory relative to the vault root.' },
+    },
+    output: {
+      schema: {
+        type: 'array',
+        items: {
+          type: 'object', additionalProperties: false,
+          properties: {
+            tag: { type: 'string', required: true },
+            count: { type: 'integer', required: true },
+          },
+        },
+      },
+      render: (_args: any, value: any) => value.length === 0
+        ? [{ type: 'text', text: 'No tags found.' }]
+        : [{ type: 'text', text: value.map((t: any) => `${t.tag} (${t.count})`).join('\n') }],
+    },
+    execute: (args) => access.listTags({ dir: args.dir }),
+  }))
 }

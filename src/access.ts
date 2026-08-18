@@ -25,6 +25,8 @@ export interface FrontmatterData {
   raw: string | null
 }
 
+export interface TagRef { tag: string; count: number }
+
 export interface WriteResult { path: string; created: boolean }
 export interface AppendResult { path: string }
 export interface MoveResult { from: string; to: string; linksUpdated: boolean }
@@ -41,4 +43,7 @@ export interface VaultAccess {
   append(path: string, content: string): Promise<AppendResult>
   move(from: string, to: string): Promise<MoveResult>
   delete(path: string): Promise<DeleteResult>
+  setProperty(path: string, key: string, value: JsonValue): Promise<FrontmatterData>
+  deleteProperty(path: string, key: string): Promise<FrontmatterData>
+  listTags(opts?: { dir?: string }): Promise<TagRef[]>
 }

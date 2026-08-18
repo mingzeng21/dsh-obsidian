@@ -20,15 +20,19 @@ const fakeAccess = {
   append: async () => ({ path: 'a.md' }),
   move: async () => ({ from: 'a.md', to: 'b.md', linksUpdated: false }),
   delete: async () => ({ path: 'a.md', trashedTo: '.trash/a.md' }),
+  setProperty: async () => ({ path: 'a.md', data: { title: 'a' }, raw: 'title: a' }),
+  deleteProperty: async () => ({ path: 'a.md', data: {}, raw: null }),
+  listTags: async () => [{ tag: '#a', count: 1 }],
 } as unknown as VaultAccess
 
 describe('registerTools', () => {
-  it('registers the expected 9 obsidian tools', () => {
+  it('registers the expected 12 obsidian tools', () => {
     const { ctx, registered } = fakeCtx()
     registerTools(ctx, fakeAccess)
     expect(registered.map((d) => d.name)).toEqual([
       'obsidian_list', 'obsidian_search', 'obsidian_read', 'obsidian_frontmatter',
       'obsidian_backlinks', 'obsidian_write', 'obsidian_append', 'obsidian_move', 'obsidian_delete',
+      'obsidian_set_property', 'obsidian_delete_property', 'obsidian_tags',
     ])
   })
 

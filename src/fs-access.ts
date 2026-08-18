@@ -1,14 +1,16 @@
 import path from 'node:path'
 import { mkdir, readFile, writeFile, rename, stat } from 'node:fs/promises'
-import { parseFrontmatter } from './frontmatter.js'
+import { parseFrontmatter, setFrontmatterProperty, deleteFrontmatterProperty } from './frontmatter.js'
+import { extractTags } from './tags.js'
 import { extractLinkTargets, noteTitleFromPath, linkTargetMatchesNote } from './wikilink.js'
 import { rewriteNoteLinks } from './link-update.js'
 import { searchVault, walkMarkdownFiles } from './search.js'
 import { guardPath } from './vault-path.js'
 import type {
   VaultAccess, NoteRef, SearchHit, Backlink, ReadResult,
-  FrontmatterData, WriteResult, AppendResult, MoveResult, DeleteResult,
+  FrontmatterData, WriteResult, AppendResult, MoveResult, DeleteResult, TagRef,
 } from './access.js'
+import type { JsonValue } from '@deepseek-ai/dsh-tools'
 
 export class FsAccess implements VaultAccess {
   private deleteCounter = 0
@@ -109,6 +111,33 @@ export class FsAccess implements VaultAccess {
     await mkdir(path.dirname(target), { recursive: true })
     await rename(abs, target)
     return { path: filePath.replace(/\\/g, '/'), trashedTo: path.relative(this.vaultRoot, target) }
+  }
+
+  async setProperty(filePath: string, key: string, value: JsonValue): Promise<FrontmatterData> {
+    const abs = guardPath(this.vaultRoot, filePath)
+    const content = await readFile(abs, 'utf8')
+    await this.atomicWrite(abs, setFrontmatterProperty(content, key, value))
+    return this.frontmatter(filePath)
+  }
+
+  async deleteProperty(filePath: string, key: string): Promise<FrontmatterData> {
+    const abs = guardPath(this.vaultRoot, filePath)
+    const content = await readFile(abs, 'utf8')
+    await this.atomicWrite(abs, deleteFrontmatterProperty(content, key))
+    return this.frontmatter(filePath)
+  }
+
+  async listTags(opts?: { dir?: string }): Promise<TagRef[]> {
+    const base = opts?.dir ? guardPath(this.vaultRoot, opts.dir) : this.vaultRoot
+    const files = await walkMarkdownFiles(base, this.excludeDirs)
+    const counts = new Map<string, number>()
+    for (const file of files) {
+      const content = await readFile(file, 'utf8')
+      for (const tag of extractTags(content)) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+    }
+    return [...counts.entries()]
+      .map(([tag, count]) => ({ tag: `#${tag}`, count }))
+      .sort((a, b) => a.tag.localeCompare(b.tag))
   }
 
   private async exists(p: string): Promise<boolean> {

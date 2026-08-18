@@ -93,4 +93,22 @@ describe('FsAccess', () => {
     const a = new FsAccess(await makeVault(), [])
     await expect(a.read('../secret.md')).rejects.toThrow(/escapes/)
   })
+
+  it('sets and deletes a frontmatter property', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    await a.setProperty('notes/one.md', 'status', 'done')
+    const after = await a.read('notes/one.md')
+    expect(after.frontmatter).toMatchObject({ title: 'One', status: 'done' })
+    await a.deleteProperty('notes/one.md', 'status')
+    const afterDel = await a.read('notes/one.md')
+    expect(afterDel.frontmatter).toEqual({ title: 'One' })
+  })
+
+  it('lists tags with counts', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    await a.write('notes/tagged.md', '---\ntags: [a, b]\n---\nsee #a')
+    await a.write('notes/tagged2.md', '---\ntags: a\n---\nbody')
+    const tags = await a.listTags()
+    expect(tags).toEqual(expect.arrayContaining([{ tag: '#a', count: 2 }, { tag: '#b', count: 1 }]))
+  })
 })
