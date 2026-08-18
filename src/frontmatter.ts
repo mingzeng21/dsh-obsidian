@@ -1,4 +1,4 @@
-import { parse as parseYaml } from 'yaml'
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 import type { JsonValue } from '@deepseek-ai/dsh-tools'
 
 export interface ParsedNote {
@@ -23,4 +23,28 @@ export function parseFrontmatter(content: string): ParsedNote {
     data = null
   }
   return { data, raw, body: content.slice(match[0].length) }
+}
+
+export function setFrontmatterProperty(content: string, key: string, value: JsonValue): string {
+  const { data, body } = parseFrontmatter(content)
+  const base = asRecord(data)
+  base[key] = value
+  return renderFrontmatter(base, body)
+}
+
+export function deleteFrontmatterProperty(content: string, key: string): string {
+  const { data, body } = parseFrontmatter(content)
+  const base = asRecord(data)
+  delete base[key]
+  return renderFrontmatter(base, body)
+}
+
+function asRecord(data: JsonValue | null): Record<string, JsonValue> {
+  if (data && typeof data === 'object' && !Array.isArray(data)) return { ...data } as Record<string, JsonValue>
+  return {}
+}
+
+function renderFrontmatter(data: Record<string, JsonValue>, body: string): string {
+  if (Object.keys(data).length === 0) return body
+  return `---\n${stringifyYaml(data)}---\n${body}`
 }
