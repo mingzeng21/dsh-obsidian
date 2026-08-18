@@ -81,6 +81,14 @@ describe('FsAccess', () => {
     expect(await readFile(path.join(tmp, '.trash', 'notes', 'two.md'), 'utf8')).toContain('# Two')
   })
 
+  it('does not overwrite an existing trash entry', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    const d1 = await a.delete('notes/two.md')
+    await a.write('notes/two.md', 'new content')
+    const d2 = await a.delete('notes/two.md')
+    expect(d2.trashedTo).not.toBe(d1.trashedTo)
+  })
+
   it('rejects a path escaping the vault', async () => {
     const a = new FsAccess(await makeVault(), [])
     await expect(a.read('../secret.md')).rejects.toThrow(/escapes/)

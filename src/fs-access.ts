@@ -11,6 +11,7 @@ import type {
 } from './access.js'
 
 export class FsAccess implements VaultAccess {
+  private deleteCounter = 0
   constructor(readonly vaultRoot: string, readonly excludeDirs: string[]) {}
 
   async list(dir?: string, limit = 200): Promise<NoteRef[]> {
@@ -101,7 +102,9 @@ export class FsAccess implements VaultAccess {
     await mkdir(trashDir, { recursive: true })
     let target = path.join(trashDir, rel)
     if (await this.exists(target)) {
-      target = path.join(trashDir, `${rel}.${Date.now()}`)
+      const ext = path.extname(rel)
+      const stem = ext ? rel.slice(0, -ext.length) : rel
+      target = path.join(trashDir, `${stem}.${Date.now()}.${++this.deleteCounter}${ext}`)
     }
     await mkdir(path.dirname(target), { recursive: true })
     await rename(abs, target)
