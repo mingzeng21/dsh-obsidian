@@ -65,8 +65,7 @@ export class FsAccess implements VaultAccess {
   async write(filePath: string, content: string): Promise<WriteResult> {
     const abs = guardPath(this.vaultRoot, filePath)
     const existed = await this.exists(abs)
-    await mkdir(path.dirname(abs), { recursive: true })
-    await writeFile(abs, content, 'utf8')
+    await this.atomicWrite(abs, content)
     return { path: filePath.replace(/\\/g, '/'), created: !existed }
   }
 
@@ -74,8 +73,7 @@ export class FsAccess implements VaultAccess {
     const abs = guardPath(this.vaultRoot, filePath)
     const existing = (await this.exists(abs)) ? await readFile(abs, 'utf8') : ''
     const separator = existing && !existing.endsWith('\n') ? '\n' : ''
-    await mkdir(path.dirname(abs), { recursive: true })
-    await writeFile(abs, existing + separator + content, 'utf8')
+    await this.atomicWrite(abs, existing + separator + content)
     return { path: filePath.replace(/\\/g, '/') }
   }
 
@@ -112,6 +110,13 @@ export class FsAccess implements VaultAccess {
 
   private async exists(p: string): Promise<boolean> {
     try { await stat(p); return true } catch { return false }
+  }
+
+  private async atomicWrite(abs: string, content: string): Promise<void> {
+    await mkdir(path.dirname(abs), { recursive: true })
+    const tmp = path.join(path.dirname(abs), `.${path.basename(abs)}.${process.pid}.${Date.now()}.tmp`)
+    await writeFile(tmp, content, 'utf8')
+    await rename(tmp, abs)
   }
 
   private snippetFor(content: string, notePath: string): string {

@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, writeFile, readFile, rm, readdir } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, it, expect } from 'vitest'
@@ -50,6 +50,14 @@ describe('FsAccess', () => {
     const a = new FsAccess(await makeVault(), [])
     await a.append('notes/two.md', 'appended')
     expect(await readFile(path.join(tmp, 'notes', 'two.md'), 'utf8')).toContain('appended')
+  })
+
+  it('leaves no temp files behind after write', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    await a.write('notes/new.md', 'hello')
+    const entries = await readdir(path.join(tmp, 'notes'))
+    expect(entries).toContain('new.md')
+    expect(entries.filter((e) => e.includes('.tmp'))).toHaveLength(0)
   })
 
   it('moves a note without updating links', async () => {
