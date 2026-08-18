@@ -165,7 +165,7 @@ export function registerTools(ctx: Context, access: VaultAccess): void {
 
   ctx.tools.register(defineTool({
     name: 'obsidian_move',
-    description: 'Move or rename a note. When the Obsidian CLI is available, backlinks are updated automatically.',
+    description: 'Move or rename a note. [[wikilinks]] pointing to it are updated automatically.',
     parameters: {
       from: { type: 'string', required: true, description: 'Current path relative to the vault root.' },
       to: { type: 'string', required: true, description: 'Destination path relative to the vault root.' },

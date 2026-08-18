@@ -26,17 +26,25 @@ export function parseFrontmatter(content: string): ParsedNote {
 }
 
 export function setFrontmatterProperty(content: string, key: string, value: JsonValue): string {
-  const { data, body } = parseFrontmatter(content)
+  const { data, raw, body } = parseFrontmatter(content)
+  assertEditableFrontmatter(data, raw)
   const base = asRecord(data)
   base[key] = value
   return renderFrontmatter(base, body)
 }
 
 export function deleteFrontmatterProperty(content: string, key: string): string {
-  const { data, body } = parseFrontmatter(content)
+  const { data, raw, body } = parseFrontmatter(content)
+  assertEditableFrontmatter(data, raw)
   const base = asRecord(data)
   delete base[key]
   return renderFrontmatter(base, body)
+}
+
+function assertEditableFrontmatter(data: JsonValue | null, raw: string | null): void {
+  if (data === null && raw !== null) {
+    throw new Error('cannot modify a note whose frontmatter is not a YAML object')
+  }
 }
 
 function asRecord(data: JsonValue | null): Record<string, JsonValue> {

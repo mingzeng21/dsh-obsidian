@@ -57,4 +57,9 @@ describe('setFrontmatterProperty / deleteFrontmatterProperty', () => {
     expect(out).toBe('Body')
     expect(parseFrontmatter(out).data).toBeNull()
   })
+
+  it('throws when modifying a note with invalid frontmatter', () => {
+    expect(() => setFrontmatterProperty('---\n: not: valid\n---\nbody', 'x', 'y')).toThrow(/frontmatter/)
+    expect(() => deleteFrontmatterProperty('---\n: not: valid\n---\nbody', 'x')).toThrow(/frontmatter/)
+  })
 })
