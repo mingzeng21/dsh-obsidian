@@ -35,6 +35,22 @@ dsh plugin --profile web add dsh-obsidian
 
 Replace `web` with the profile you run your agent in (`web`, `headless`, `tui`, …).
 
+## Update
+
+Re-running `add` pulls the latest (`latest`):
+
+```sh
+dsh plugin --profile web add dsh-obsidian
+```
+
+Or pin a specific version:
+
+```sh
+dsh plugin --profile web add dsh-obsidian@0.2.0
+```
+
+Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
+
 ## Uninstall
 
 ```sh

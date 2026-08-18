@@ -35,6 +35,22 @@ dsh plugin --profile web add dsh-obsidian
 
 把 `web` 换成你运行 agent 所用的 profile（`web`、`headless`、`tui` 等）。
 
+## 更新
+
+重跑 `add` 即会拉取最新版（`latest`）：
+
+```sh
+dsh plugin --profile web add dsh-obsidian
+```
+
+或锁定具体版本：
+
+```sh
+dsh plugin --profile web add dsh-obsidian@0.2.0
+```
+
+更新后重启 harness（`dsh web`）或刷新 Web UI；用 `dsh plugin --profile web list` 确认版本。
+
 ## 卸载
 
 ```sh
