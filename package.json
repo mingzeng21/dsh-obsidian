@@ -28,5 +28,8 @@
     "vitest": "^3.0.0"
   },
   "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/mingzeng21/dsh-obsidian.git" },
+  "homepage": "https://github.com/mingzeng21/dsh-obsidian#readme",
+  "bugs": { "url": "https://github.com/mingzeng21/dsh-obsidian/issues" },
   "keywords": ["dsh", "dsh-plugin", "obsidian", "deepseek-harness"]
 }

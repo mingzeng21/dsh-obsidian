@@ -8,12 +8,11 @@ Connect [DeepSeek Harness](https://github.com/deepseek-ai/dsh) (`dsh`) to a loca
 
 ## What it does
 
-Once `dsh-obsidian` is installed, your `dsh` agent can read and write a local Obsidian vault directly. On startup the plugin detects your vault (or reads the path you configured) and mounts 9 `obsidian_*` tools covering search, read, write, append, move, delete, and backlink lookups.
+Once `dsh-obsidian` is installed, your `dsh` agent can read and write a local Obsidian vault directly. On startup the plugin detects your vault (or reads the path you configured) and mounts 12 `obsidian_*` tools covering search, read, write, append, move, delete, and backlink lookups.
 
 ## Features
 
 - **Zero server** — reads/writes the vault filesystem directly; no Local REST API community plugin, no standing MCP server.
-- **Optional Obsidian-native ops** — when the `obsidian` CLI is available, backlinks and move delegate to it (link-aware moves); otherwise everything falls back to a pure filesystem implementation.
 - **Safe by default** — deletes move notes into `.trash/` (reversible), paths can't escape the vault root, and `.obsidian/` is never touched.
 
 ## How it works
@@ -23,11 +22,10 @@ dsh agent calls obsidian_* tools
    │
    ▼
 VaultAccess interface
-   ├─ FsAccess   — node:fs + hand-written frontmatter/wikilink parsing (always available)
-   └─ CliAccess  — when the obsidian CLI is detected, delegates backlinks/move to it (everything else stays on fs)
+   └─ FsAccess — node:fs + hand-written frontmatter/wikilink parsing (default, pure filesystem)
 ```
 
-On startup the plugin resolves the vault root as "explicit `vaultPath` wins, else auto-detect from `obsidian.json`"; when `useCli` is on and the CLI is detected it enables `CliAccess`, and any CLI failure silently falls back to `FsAccess`.
+On startup the plugin resolves the vault root as "explicit `vaultPath` wins, else auto-detect from `obsidian.json`"; when `useCli` is on and the CLI is detected, `property:set`/`property:remove` delegate to it and everything else stays on `FsAccess`; any CLI failure silently falls back to `FsAccess`.
 
 ## Install
 
@@ -48,7 +46,7 @@ dsh plugin --profile web remove dsh-obsidian
 | Key | Default | Description |
 | --- | --- | --- |
 | `vaultPath` | (auto-detected) | Absolute path to the vault; leave empty to auto-detect the currently-open vault from `obsidian.json` |
-| `useCli` | `true` | Delegate backlinks/move to the `obsidian` CLI when available |
+| `useCli` | `false` | Delegate `property:set`/`property:remove` to the `obsidian` CLI when available |
 | `excludeDirs` | `[".obsidian", ".git", ".trash"]` | Directories excluded from search and list |
 
 ## Tools
@@ -62,8 +60,11 @@ dsh plugin --profile web remove dsh-obsidian
 | `obsidian_backlinks` | Find notes linking to a note via `[[wikilinks]]` |
 | `obsidian_write` | Create or overwrite a note (creates parent directories) |
 | `obsidian_append` | Append text to the end of a note |
-| `obsidian_move` | Move/rename a note (updates links when the CLI is available) |
+| `obsidian_move` | Move/rename a note (updates `[[wikilinks]]` in pure filesystem) |
 | `obsidian_delete` | Trash a note into `.trash/` (reversible, never permanently deletes) |
+| `obsidian_set_property` | Set or update a single frontmatter property (YAML) on a note |
+| `obsidian_delete_property` | Remove a frontmatter property from a note |
+| `obsidian_tags` | List all tags in the vault with usage counts |
 
 All tool path arguments are relative to the vault root (e.g. `Folder/note.md`).
 
@@ -78,7 +79,6 @@ All tool path arguments are relative to the vault root (e.g. `Folder/note.md`).
 
 - [DeepSeek Harness](https://github.com/deepseek-ai/dsh) (`dsh`)
 - Node.js ≥ 22.12.0
-- Obsidian CLI (optional, for link-aware moves and CLI backlinks)
 
 ## Development
 
