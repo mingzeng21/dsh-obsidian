@@ -14,11 +14,7 @@ export const Config = z.object({
 
 type Cfg = { vaultPath?: string; useCli: boolean; excludeDirs: string[] }
 
-export function apply(ctx: Context, config: Cfg): void {
-  void (async () => {
-    const { access } = await setupAccess(config)
-    registerTools(ctx, access)
-  })().catch((err) => {
-    console.error('[dsh-obsidian] failed to mount:', err)
-  })
+export async function apply(ctx: Context, config: Cfg): Promise<void> {
+  const { access } = await setupAccess(config)
+  registerTools(ctx, access)
 }
