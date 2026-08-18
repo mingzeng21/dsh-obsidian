@@ -8,7 +8,7 @@ export const inject = ['tools']
 
 export const Config = z.object({
   vaultPath: z.string().description('Absolute path to the Obsidian vault; leave empty to auto-detect from obsidian.json'),
-  useCli: z.boolean().default(true).description('Delegate backlinks/move to the obsidian CLI when available'),
+  useCli: z.boolean().default(false).description('Delegate set/delete property to the obsidian CLI when available'),
   excludeDirs: z.array(z.string()).default(['.obsidian', '.git', '.trash']).description('Directories excluded from search and list'),
 })
 

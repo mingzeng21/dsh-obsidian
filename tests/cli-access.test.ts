@@ -1,43 +1,41 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { CliAccess } from '../src/cli-access.js'
 
-vi.mock('../src/spawn.js', () => ({
-  run: vi.fn(),
-  binaryAvailable: vi.fn(),
-}))
-
+vi.mock('../src/spawn.js', () => ({ run: vi.fn(), binaryAvailable: vi.fn().mockResolvedValue(true) }))
 import { run } from '../src/spawn.js'
-const runMock = run as unknown as ReturnType<typeof vi.fn>
 
-beforeEach(() => { runMock.mockReset() })
+let tmp: string
+afterEach(async () => { vi.clearAllMocks(); if (tmp) await rm(tmp, { recursive: true, force: true }) })
 
-describe('CliAccess.backlinks', () => {
-  it('maps CLI JSON when the CLI succeeds', async () => {
-    runMock.mockResolvedValue({ stdout: JSON.stringify([{ path: 'x.md', snippet: 'see [[y]]' }]), stderr: '' })
-    const a = new CliAccess('/tmp/vault', [])
-    const backlinks = await a.backlinks('y.md')
-    expect(backlinks).toEqual([{ path: 'x.md', title: 'x', snippet: 'see [[y]]' }])
-    expect(runMock).toHaveBeenCalledWith('obsidian', ['backlinks', 'path=y.md', 'format=json'], { cwd: '/tmp/vault' })
+async function makeVault(): Promise<string> {
+  tmp = await mkdtemp(path.join(os.tmpdir(), 'vault-'))
+  await mkdir(path.join(tmp, 'notes'), { recursive: true })
+  await writeFile(path.join(tmp, 'notes', 'one.md'), '---\ntitle: One\n---\nBody\n')
+  return tmp
+}
+
+describe('CliAccess', () => {
+  it('delegates setProperty to the obsidian CLI', async () => {
+    vi.mocked(run).mockResolvedValue({ stdout: '', stderr: '' })
+    const a = new CliAccess(await makeVault(), ['.obsidian', '.git', '.trash'])
+    await a.setProperty('notes/one.md', 'status', 'done')
+    expect(run).toHaveBeenCalledWith('obsidian', ['property:set', 'name=status', 'value=done', 'path=notes/one.md'], { cwd: a.vaultRoot })
   })
 
-  it('falls back to the fs scan when the CLI fails', async () => {
-    runMock.mockRejectedValue(new Error('no cli'))
-    const a = new CliAccess('/tmp/nonexistent-vault-xyz', [])
-    await expect(a.backlinks('y.md')).resolves.toEqual([])
-  })
-})
-
-describe('CliAccess.move', () => {
-  it('reports linksUpdated when the CLI move succeeds', async () => {
-    runMock.mockResolvedValue({ stdout: '', stderr: '' })
-    const a = new CliAccess('/tmp/vault', [])
-    const m = await a.move('a.md', 'b.md')
-    expect(m).toEqual({ from: 'a.md', to: 'b.md', linksUpdated: true })
-    expect(runMock).toHaveBeenCalledWith('obsidian', ['move', 'path=a.md', 'to=b.md'], { cwd: '/tmp/vault' })
+  it('falls back to fs when the CLI fails', async () => {
+    vi.mocked(run).mockRejectedValue(new Error('no obsidian'))
+    const a = new CliAccess(await makeVault(), ['.obsidian', '.git', '.trash'])
+    const r = await a.setProperty('notes/one.md', 'status', 'done')
+    expect(r.data).toMatchObject({ title: 'One', status: 'done' })
   })
 
-  it('move rejects a path escaping the vault', async () => {
-    const a = new CliAccess('/tmp/vault', [])
-    await expect(a.move('../secret.md', 'b.md')).rejects.toThrow(/escapes/)
+  it('move does not invoke the CLI', async () => {
+    const a = new CliAccess(await makeVault(), ['.obsidian', '.git', '.trash'])
+    const m = await a.move('notes/one.md', 'notes/two.md')
+    expect(run).not.toHaveBeenCalled()
+    expect(m.linksUpdated).toBe(false)
   })
 })

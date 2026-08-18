@@ -1,36 +1,31 @@
-import path from 'node:path'
 import { FsAccess } from './fs-access.js'
 import { run } from './spawn.js'
 import { guardPath } from './vault-path.js'
-import type { Backlink, MoveResult } from './access.js'
+import type { FrontmatterData } from './access.js'
+import type { JsonValue } from '@deepseek-ai/dsh-tools'
+
+function cliValue(value: JsonValue): string {
+  return typeof value === 'string' ? value : JSON.stringify(value)
+}
 
 export class CliAccess extends FsAccess {
-  async backlinks(notePath: string): Promise<Backlink[]> {
+  async setProperty(notePath: string, key: string, value: JsonValue): Promise<FrontmatterData> {
     guardPath(this.vaultRoot, notePath)
     try {
-      const { stdout } = await run('obsidian', ['backlinks', `path=${notePath}`, 'format=json'], { cwd: this.vaultRoot })
-      const parsed = JSON.parse(stdout) as unknown
-      if (Array.isArray(parsed)) {
-        return parsed.map((entry: any) => ({
-          path: String(entry.path ?? ''),
-          title: String(entry.title ?? path.basename(String(entry.path ?? ''), '.md')),
-          snippet: String(entry.snippet ?? ''),
-        }))
-      }
+      await run('obsidian', ['property:set', `name=${key}`, `value=${cliValue(value)}`, `path=${notePath}`], { cwd: this.vaultRoot })
+      return this.frontmatter(notePath)
     } catch {
-      // fall through to the fs implementation
+      return super.setProperty(notePath, key, value)
     }
-    return super.backlinks(notePath)
   }
 
-  async move(from: string, to: string): Promise<MoveResult> {
-    guardPath(this.vaultRoot, from)
-    guardPath(this.vaultRoot, to)
+  async deleteProperty(notePath: string, key: string): Promise<FrontmatterData> {
+    guardPath(this.vaultRoot, notePath)
     try {
-      await run('obsidian', ['move', `path=${from}`, `to=${to}`], { cwd: this.vaultRoot })
-      return { from: from.replace(/\\/g, '/'), to: to.replace(/\\/g, '/'), linksUpdated: true }
+      await run('obsidian', ['property:remove', `name=${key}`, `path=${notePath}`], { cwd: this.vaultRoot })
+      return this.frontmatter(notePath)
     } catch {
-      return super.move(from, to)
+      return super.deleteProperty(notePath, key)
     }
   }
 }
