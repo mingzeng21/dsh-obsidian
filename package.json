@@ -1,26 +1,44 @@
 {
   "name": "dsh-obsidian",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Connect DeepSeek Harness (dsh) to a local Obsidian vault: search, read, write, move, and trash notes.",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "exports": { ".": { "types": "./lib/index.d.ts", "default": "./lib/index.js" } },
-  "files": ["lib", "cordis.patch.yml", "README.md", "README.en.md"],
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md"
+  ],
   "scripts": {
     "build": "tsdown",
     "prepare": "tsdown",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
-  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",
     "@deepseek-ai/dsh-tools": "*",
     "@deepseek-ai/schemastery": "*"
   },
-  "dependencies": { "yaml": "^2.7.0" },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "tsdown": "^0.13.0",
@@ -28,8 +46,18 @@
     "vitest": "^3.0.0"
   },
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/mingzeng21/dsh-obsidian.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mingzeng21/dsh-obsidian.git"
+  },
   "homepage": "https://github.com/mingzeng21/dsh-obsidian#readme",
-  "bugs": { "url": "https://github.com/mingzeng21/dsh-obsidian/issues" },
-  "keywords": ["dsh", "dsh-plugin", "obsidian", "deepseek-harness"]
+  "bugs": {
+    "url": "https://github.com/mingzeng21/dsh-obsidian/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "obsidian",
+    "deepseek-harness"
+  ]
 }
