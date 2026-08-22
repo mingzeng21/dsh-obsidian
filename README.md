@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 或锁定具体版本：
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.0
+dsh plugin --profile web add dsh-obsidian@0.2.1
 ```
 
 更新后重启 harness（`dsh web`）或刷新 Web UI；用 `dsh plugin --profile web list` 确认版本。
@@ -95,6 +95,8 @@ dsh plugin --profile web remove dsh-obsidian
 
 - [DeepSeek Harness](https://github.com/deepseek-ai/dsh)（`dsh`）
 - Node.js ≥ 22.12.0
+
+已验证兼容至 `dsh` v0.1.1-rc.2（含 v0.1.0-rc.8）。
 
 ## 开发
 
