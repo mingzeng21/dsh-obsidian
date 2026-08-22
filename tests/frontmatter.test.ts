@@ -40,6 +40,17 @@ describe('setFrontmatterProperty / deleteFrontmatterProperty', () => {
     expect(body).toBe('Body')
   })
 
+  it('preserves YAML comments when setting a property', () => {
+    const out = setFrontmatterProperty('---\ntitle: Hi\n# keep me\nstatus: done\n---\nBody', 'x', 'y')
+    expect(out).toContain('# keep me')
+  })
+
+  it('preserves YAML comments of other keys when deleting a property', () => {
+    const out = deleteFrontmatterProperty('---\ntitle: Hi\n# keep me\nstatus: done\n---\nBody', 'title')
+    expect(out).toContain('# keep me')
+    expect(out).toContain('status: done')
+  })
+
   it('creates frontmatter when none exists', () => {
     const out = setFrontmatterProperty('# Heading\n\nBody', 'title', 'New')
     expect(out.startsWith('---\n')).toBe(true)

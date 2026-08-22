@@ -90,7 +90,7 @@ export class FsAccess implements VaultAccess {
       const content = await readFile(file, 'utf8')
       const { content: next, changed } = rewriteNoteLinks(content, from, to)
       if (changed) {
-        await writeFile(file, next, 'utf8')
+        await this.atomicWrite(file, next)
         linksUpdated = true
       }
     }

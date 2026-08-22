@@ -1,4 +1,5 @@
-import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
+import { parse as parseYaml, parseDocument, isMap } from 'yaml'
+import type { Document } from 'yaml'
 import type { JsonValue } from '@deepseek-ai/dsh-tools'
 
 export interface ParsedNote {
@@ -28,17 +29,18 @@ export function parseFrontmatter(content: string): ParsedNote {
 export function setFrontmatterProperty(content: string, key: string, value: JsonValue): string {
   const { data, raw, body } = parseFrontmatter(content)
   assertEditableFrontmatter(data, raw)
-  const base = asRecord(data)
-  base[key] = value
-  return renderFrontmatter(base, body)
+  const doc = parseDocument(raw ?? '')
+  doc.set(key, value)
+  return renderDocument(doc, body)
 }
 
 export function deleteFrontmatterProperty(content: string, key: string): string {
   const { data, raw, body } = parseFrontmatter(content)
   assertEditableFrontmatter(data, raw)
-  const base = asRecord(data)
-  delete base[key]
-  return renderFrontmatter(base, body)
+  if (raw === null) return content
+  const doc = parseDocument(raw)
+  doc.delete(key)
+  return renderDocument(doc, body)
 }
 
 function assertEditableFrontmatter(data: JsonValue | null, raw: string | null): void {
@@ -47,12 +49,8 @@ function assertEditableFrontmatter(data: JsonValue | null, raw: string | null): 
   }
 }
 
-function asRecord(data: JsonValue | null): Record<string, JsonValue> {
-  if (data && typeof data === 'object' && !Array.isArray(data)) return { ...data } as Record<string, JsonValue>
-  return {}
-}
-
-function renderFrontmatter(data: Record<string, JsonValue>, body: string): string {
-  if (Object.keys(data).length === 0) return body
-  return `---\n${stringifyYaml(data)}---\n${body}`
+function renderDocument(doc: Document, body: string): string {
+  const contents = doc.contents
+  if (contents === null || (isMap(contents) && contents.items.length === 0)) return body
+  return `---\n${doc.toString().replace(/\n$/, '')}\n---\n${body}`
 }
