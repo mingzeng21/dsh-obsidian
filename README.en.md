@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 Or pin a specific version:
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.1
+dsh plugin --profile web add dsh-obsidian@0.2.2
 ```
 
 Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
@@ -106,6 +106,15 @@ npm run build      # tsdown → lib/
 npm run typecheck  # tsc --noEmit
 npm test           # vitest
 ```
+
+## Changelog
+
+### 0.2.2
+
+- `obsidian_tags` and inline `#tag` extraction now support CJK and other Unicode characters.
+- `obsidian_backlinks` / `obsidian_move` resolve `[[wikilinks]]` uniquely following Obsidian's rules: same-named notes are no longer over-matched, and ambiguous links are no longer mis-rewritten.
+- `obsidian_set_property` / `obsidian_delete_property` preserve existing YAML comments, anchors/aliases, and block formatting instead of re-serializing.
+- Reliability: atomic writes when `obsidian_move` updates links, fallback for cross-filesystem moves/deletes, and consistent search results with or without ripgrep.
 
 ## License
 

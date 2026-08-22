@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 或锁定具体版本：
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.1
+dsh plugin --profile web add dsh-obsidian@0.2.2
 ```
 
 更新后重启 harness（`dsh web`）或刷新 Web UI；用 `dsh plugin --profile web list` 确认版本。
@@ -106,6 +106,15 @@ npm run build      # tsdown → lib/
 npm run typecheck  # tsc --noEmit
 npm test           # vitest
 ```
+
+## 更新日志
+
+### 0.2.2
+
+- `obsidian_tags` 与内联 `#标签` 提取支持中文等 Unicode 字符。
+- `obsidian_backlinks` / `obsidian_move` 按 Obsidian 规则唯一解析 `[[链接]]`：同名笔记不再被误判，歧义链接不再被误改。
+- `obsidian_set_property` / `obsidian_delete_property` 编辑属性时保留原有 YAML 注释、锚点/别名与多行格式，不再整块重写。
+- 稳定性：`obsidian_move` 链接更新改为原子写；跨文件系统移动/删除自动回退；搜索在有/无 ripgrep 时结果一致。
 
 ## 许可证
 
