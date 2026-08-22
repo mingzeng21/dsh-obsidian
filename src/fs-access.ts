@@ -2,7 +2,7 @@ import path from 'node:path'
 import { mkdir, readFile, writeFile, rename, stat } from 'node:fs/promises'
 import { parseFrontmatter, setFrontmatterProperty, deleteFrontmatterProperty } from './frontmatter.js'
 import { extractTags } from './tags.js'
-import { extractLinkTargets, noteTitleFromPath, linkTargetMatchesNote } from './wikilink.js'
+import { extractLinkTargets, noteTitleFromPath, resolveLinkTarget, stripMd } from './wikilink.js'
 import { rewriteNoteLinks } from './link-update.js'
 import { renameAcrossDevices } from './rename.js'
 import { searchVault, walkMarkdownFiles } from './search.js'
@@ -52,11 +52,13 @@ export class FsAccess implements VaultAccess {
 
   async backlinks(notePath: string): Promise<Backlink[]> {
     const files = await walkMarkdownFiles(this.vaultRoot, this.excludeDirs)
+    const notePaths = files.map((f) => path.relative(this.vaultRoot, f))
+    const target = stripMd(notePath)
     const out: Backlink[] = []
     for (const file of files) {
       const content = await readFile(file, 'utf8')
       const targets = extractLinkTargets(content)
-      if (!targets.some((t) => linkTargetMatchesNote(t, notePath))) continue
+      if (!targets.some((t) => resolveLinkTarget(t, notePaths) === target)) continue
       out.push({
         path: path.relative(this.vaultRoot, file),
         title: noteTitleFromPath(file),
@@ -84,12 +86,14 @@ export class FsAccess implements VaultAccess {
   async move(from: string, to: string): Promise<MoveResult> {
     const fromAbs = guardPath(this.vaultRoot, from)
     const toAbs = guardPath(this.vaultRoot, to)
+    const notePaths = (await walkMarkdownFiles(this.vaultRoot, this.excludeDirs))
+      .map((f) => path.relative(this.vaultRoot, f))
     await mkdir(path.dirname(toAbs), { recursive: true })
     await renameAcrossDevices(fromAbs, toAbs)
     let linksUpdated = false
     for (const file of await walkMarkdownFiles(this.vaultRoot, this.excludeDirs)) {
       const content = await readFile(file, 'utf8')
-      const { content: next, changed } = rewriteNoteLinks(content, from, to)
+      const { content: next, changed } = rewriteNoteLinks(content, from, to, notePaths)
       if (changed) {
         await this.atomicWrite(file, next)
         linksUpdated = true

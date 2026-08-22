@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractLinkTargets, noteTitleFromPath, linkTargetMatchesNote } from '../src/wikilink.js'
+import { extractLinkTargets, noteTitleFromPath, resolveLinkTarget } from '../src/wikilink.js'
 
 describe('extractLinkTargets', () => {
   it('extracts simple, aliased, and heading links', () => {
@@ -19,10 +19,24 @@ describe('noteTitleFromPath', () => {
   })
 })
 
-describe('linkTargetMatchesNote', () => {
-  it('matches by basename or full path', () => {
-    expect(linkTargetMatchesNote('My Note', 'Folder/My Note.md')).toBe(true)
-    expect(linkTargetMatchesNote('Folder/My Note', 'Folder/My Note.md')).toBe(true)
-    expect(linkTargetMatchesNote('Other', 'Folder/My Note.md')).toBe(false)
+describe('resolveLinkTarget', () => {
+  it('resolves a bare name to the unique matching note', () => {
+    expect(resolveLinkTarget('My Note', ['Folder/My Note.md'])).toBe('Folder/My Note')
+  })
+
+  it('resolves a full path to the exact note', () => {
+    expect(resolveLinkTarget('Folder/My Note', ['Folder/My Note.md'])).toBe('Folder/My Note')
+  })
+
+  it('resolves a shorter path by suffix', () => {
+    expect(resolveLinkTarget('Sub/Note', ['Folder/Sub/Note.md'])).toBe('Folder/Sub/Note')
+  })
+
+  it('returns null when the target has no match', () => {
+    expect(resolveLinkTarget('Other', ['Folder/My Note.md'])).toBeNull()
+  })
+
+  it('returns null when the basename is ambiguous', () => {
+    expect(resolveLinkTarget('Foo', ['a/Foo.md', 'b/Foo.md'])).toBeNull()
   })
 })

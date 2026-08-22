@@ -14,9 +14,12 @@ export function noteTitleFromPath(filePath: string): string {
   return base.replace(/\.md$/i, '')
 }
 
-export function linkTargetMatchesNote(target: string, notePath: string): boolean {
-  const t = target.replace(/\.md$/i, '')
-  const n = notePath.replace(/\.md$/i, '')
-  const nBase = noteTitleFromPath(n)
-  return t === n || t === nBase || t.endsWith('/' + nBase)
+export function stripMd(p: string): string {
+  return p.replace(/\.md$/i, '')
+}
+
+export function resolveLinkTarget(target: string, notePaths: string[]): string | null {
+  const t = stripMd(target)
+  const matches = notePaths.map(stripMd).filter((p) => p === t || p.endsWith('/' + t))
+  return matches.length === 1 ? matches[0] : null
 }

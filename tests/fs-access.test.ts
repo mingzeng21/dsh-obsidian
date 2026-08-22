@@ -39,6 +39,22 @@ describe('FsAccess', () => {
     expect(backlinks[0].path).toBe('notes/two.md')
   })
 
+  it('does not count an ambiguous basename link as a backlink', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    await a.write('a/Foo.md', '# Foo A\n')
+    await a.write('b/Foo.md', '# Foo B\n')
+    await a.write('x.md', 'links [[Foo]]\n')
+    expect(await a.backlinks('a/Foo.md')).toHaveLength(0)
+  })
+
+  it('counts an unambiguous path link as a backlink', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    await a.write('a/Foo.md', '# Foo A\n')
+    await a.write('b/Foo.md', '# Foo B\n')
+    await a.write('x.md', 'links [[a/Foo]]\n')
+    expect((await a.backlinks('a/Foo.md')).map((b) => b.path)).toContain('x.md')
+  })
+
   it('writes a new note and reports created', async () => {
     const a = new FsAccess(await makeVault(), [])
     const w = await a.write('notes/three.md', 'hello')
