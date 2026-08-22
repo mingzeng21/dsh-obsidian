@@ -1,7 +1,7 @@
 import { parseFrontmatter } from './frontmatter.js'
 
 const FENCED_CODE_RE = /```[\s\S]*?```/g
-const INLINE_TAG_RE = /(?:^|\s)#([A-Za-z0-9_/-]+)/g
+const INLINE_TAG_RE = /(?:^|\s)#([\p{L}\p{N}_/-]+)/gu
 
 export function extractTags(content: string): Set<string> {
   const tags = new Set<string>()

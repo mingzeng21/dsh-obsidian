@@ -67,9 +67,14 @@ async function rawMatches(base: string, excludeDirs: string[], query: string): P
   return jsMatches(base, excludeDirs, query)
 }
 
-async function rgMatches(base: string, excludeDirs: string[], query: string): Promise<RawMatch[]> {
-  const args = ['-n', '-i', '-F', '--no-heading', '--with-filename', '-e', query]
+export function rgArgs(query: string, excludeDirs: string[]): string[] {
+  const args = ['-n', '-i', '-F', '--no-heading', '--with-filename', '--no-ignore', '-e', query]
   for (const d of excludeDirs) args.push('-g', `!**/${d}/**`)
+  return args
+}
+
+async function rgMatches(base: string, excludeDirs: string[], query: string): Promise<RawMatch[]> {
+  const args = rgArgs(query, excludeDirs)
   args.push(base)
   const { stdout } = await run('rg', args)
   const out: RawMatch[] = []

@@ -14,6 +14,10 @@ describe('extractTags', () => {
     expect([...extractTags('# Heading\n\nnote about #ai and #machine-learning')].sort()).toEqual(['ai', 'machine-learning'])
   })
 
+  it('extracts inline #tags with non-ASCII (CJK) characters', () => {
+    expect([...extractTags('关于 #项目 和 #机器学习 的笔记')].sort()).toEqual(['机器学习', '项目'])
+  })
+
   it('ignores tags inside fenced code blocks', () => {
     expect([...extractTags('before\n```js\nconst x = "#notatag"\n```\nafter #real')]).toEqual(['real'])
   })

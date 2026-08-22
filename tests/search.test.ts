@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, it, expect } from 'vitest'
-import { searchVault } from '../src/search.js'
+import { searchVault, rgArgs } from '../src/search.js'
 
 let tmp: string
 afterEach(async () => { if (tmp) await rm(tmp, { recursive: true, force: true }) })
@@ -60,5 +60,22 @@ describe('searchVault', () => {
   it('rejects a dir escaping the vault', async () => {
     const v = await makeVault()
     await expect(searchVault(v, [], 'x', { dir: '../secret' })).rejects.toThrow(/escapes/)
+  })
+
+  it('does not respect .gitignore (matches the JS scanner)', async () => {
+    const v = await makeVault()
+    await writeFile(path.join(v, '.gitignore'), 'ignored/\n')
+    await mkdir(path.join(v, 'ignored'), { recursive: true })
+    await writeFile(path.join(v, 'ignored', 'c.md'), 'secret needle here')
+    const hits = await searchVault(v, [], 'needle')
+    expect(hits.map((h) => h.path)).toContain('ignored/c.md')
+  })
+})
+
+describe('rgArgs', () => {
+  it('disables ignore files so results match the JS scanner', () => {
+    const args = rgArgs('alpha', ['.obsidian', '.git', '.trash'])
+    expect(args).toContain('--no-ignore')
+    expect(args).toContain('!**/.obsidian/**')
   })
 })
