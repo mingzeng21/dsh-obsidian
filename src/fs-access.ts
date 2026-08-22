@@ -4,6 +4,7 @@ import { parseFrontmatter, setFrontmatterProperty, deleteFrontmatterProperty } f
 import { extractTags } from './tags.js'
 import { extractLinkTargets, noteTitleFromPath, linkTargetMatchesNote } from './wikilink.js'
 import { rewriteNoteLinks } from './link-update.js'
+import { renameAcrossDevices } from './rename.js'
 import { searchVault, walkMarkdownFiles } from './search.js'
 import { guardPath } from './vault-path.js'
 import type {
@@ -84,7 +85,7 @@ export class FsAccess implements VaultAccess {
     const fromAbs = guardPath(this.vaultRoot, from)
     const toAbs = guardPath(this.vaultRoot, to)
     await mkdir(path.dirname(toAbs), { recursive: true })
-    await rename(fromAbs, toAbs)
+    await renameAcrossDevices(fromAbs, toAbs)
     let linksUpdated = false
     for (const file of await walkMarkdownFiles(this.vaultRoot, this.excludeDirs)) {
       const content = await readFile(file, 'utf8')
@@ -109,7 +110,7 @@ export class FsAccess implements VaultAccess {
       target = path.join(trashDir, `${stem}.${Date.now()}.${++this.deleteCounter}${ext}`)
     }
     await mkdir(path.dirname(target), { recursive: true })
-    await rename(abs, target)
+    await renameAcrossDevices(abs, target)
     return { path: filePath.replace(/\\/g, '/'), trashedTo: path.relative(this.vaultRoot, target) }
   }
 
