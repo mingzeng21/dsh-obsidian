@@ -2,7 +2,7 @@
 
 Connect [DeepSeek Harness](https://github.com/deepseek-ai/dsh) (`dsh`) to a local [Obsidian](https://obsidian.md) vault. Because an Obsidian vault is just a folder of Markdown files on disk, your `dsh` agent can search, read, write, move, and trash notes directly — **no MCP server, no OAuth**.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org)
 
 [中文](README.md) | English
 
