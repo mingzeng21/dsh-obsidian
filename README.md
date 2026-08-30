@@ -96,7 +96,7 @@ dsh plugin --profile web remove dsh-obsidian
 - [DeepSeek Harness](https://github.com/deepseek-ai/dsh)（`dsh`）
 - Node.js ≥ 22.12.0
 
-已验证兼容至 `dsh` v0.1.1-rc.2（含 v0.1.0-rc.8）。
+已验证兼容至 `dsh` v0.1.2-alpha.1（含 v0.1.1-rc.2 与 v0.1.0-rc.8）。
 
 ## 开发
 
