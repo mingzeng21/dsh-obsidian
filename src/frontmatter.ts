@@ -1,6 +1,6 @@
 import { parse as parseYaml, parseDocument, isMap } from 'yaml'
 import type { Document } from 'yaml'
-import type { JsonValue } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from './json-value.js'
 
 export interface ParsedNote {
   data: JsonValue | null

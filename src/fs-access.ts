@@ -11,7 +11,7 @@ import type {
   VaultAccess, NoteRef, SearchHit, Backlink, ReadResult,
   FrontmatterData, WriteResult, AppendResult, MoveResult, DeleteResult, TagRef,
 } from './access.js'
-import type { JsonValue } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from './json-value.js'
 
 export class FsAccess implements VaultAccess {
   private deleteCounter = 0

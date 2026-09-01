@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 Or pin a specific version:
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.2
+dsh plugin --profile web add dsh-obsidian@0.2.3
 ```
 
 Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
@@ -96,7 +96,7 @@ All tool path arguments are relative to the vault root (e.g. `Folder/note.md`).
 - [DeepSeek Harness](https://github.com/deepseek-ai/dsh) (`dsh`)
 - Node.js ≥ 22.12.0
 
-Verified compatible up to `dsh` v0.1.2-alpha.1 (including v0.1.1-rc.2 and v0.1.0-rc.8).
+Compatibility has been updated through `dsh` v0.1.2-alpha.3 (including v0.1.2-alpha.2, v0.1.2-alpha.1, v0.1.1-rc.2, and v0.1.0-rc.8).
 
 ## Development
 
@@ -108,6 +108,10 @@ npm test           # vitest
 ```
 
 ## Changelog
+
+### 0.2.3
+
+- Fix source typecheck/build compatibility after `dsh` v0.1.2-alpha.2/alpha.3 stopped re-exporting `JsonValue` from `@deepseek-ai/dsh-tools`, while preserving compatibility with older dsh releases.
 
 ### 0.2.2
 

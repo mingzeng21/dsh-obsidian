@@ -1,4 +1,4 @@
-import type { JsonValue } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from './json-value.js'
 
 export interface NoteRef { path: string; title: string }
 

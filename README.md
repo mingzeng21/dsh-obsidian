@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 或锁定具体版本：
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.2
+dsh plugin --profile web add dsh-obsidian@0.2.3
 ```
 
 更新后重启 harness（`dsh web`）或刷新 Web UI；用 `dsh plugin --profile web list` 确认版本。
@@ -96,7 +96,7 @@ dsh plugin --profile web remove dsh-obsidian
 - [DeepSeek Harness](https://github.com/deepseek-ai/dsh)（`dsh`）
 - Node.js ≥ 22.12.0
 
-已验证兼容至 `dsh` v0.1.2-alpha.1（含 v0.1.1-rc.2 与 v0.1.0-rc.8）。
+已完成对 `dsh` v0.1.2-alpha.3 的兼容适配（含 v0.1.2-alpha.2、v0.1.2-alpha.1、v0.1.1-rc.2 与 v0.1.0-rc.8）。
 
 ## 开发
 
@@ -108,6 +108,10 @@ npm test           # vitest
 ```
 
 ## 更新日志
+
+### 0.2.3
+
+- 修复 `dsh` v0.1.2-alpha.2/alpha.3 移除 `@deepseek-ai/dsh-tools` 的 `JsonValue` 转出后，插件源码无法 typecheck/build 的兼容性问题；保留对旧版 dsh 的兼容。
 
 ### 0.2.2
 

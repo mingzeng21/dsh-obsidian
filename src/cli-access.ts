@@ -2,7 +2,7 @@ import { FsAccess } from './fs-access.js'
 import { run } from './spawn.js'
 import { guardPath } from './vault-path.js'
 import type { FrontmatterData } from './access.js'
-import type { JsonValue } from '@deepseek-ai/dsh-tools'
+import type { JsonValue } from './json-value.js'
 
 function cliValue(value: JsonValue): string {
   return typeof value === 'string' ? value : JSON.stringify(value)

@@ -1,6 +1,6 @@
 {
   "name": "dsh-obsidian",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Connect DeepSeek Harness (dsh) to a local Obsidian vault: search, read, write, move, and trash notes.",
   "engines": {
     "node": ">=22.12.0"
