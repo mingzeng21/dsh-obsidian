@@ -96,7 +96,7 @@ All tool path arguments are relative to the vault root (e.g. `Folder/note.md`).
 - [DeepSeek Harness](https://github.com/deepseek-ai/dsh) (`dsh`)
 - Node.js ≥ 22.12.0
 
-Compatibility has been updated through `dsh` v0.1.2-alpha.3 (including v0.1.2-alpha.2, v0.1.2-alpha.1, v0.1.1-rc.2, and v0.1.0-rc.8).
+Compatibility has been verified through `dsh` v0.1.5-alpha.1 (including v0.1.3-alpha.2, v0.1.3-alpha.1, v0.1.2-rc.1, v0.1.2-alpha.5, v0.1.2-alpha.4, v0.1.2-alpha.3, v0.1.2-alpha.2, v0.1.2-alpha.1, v0.1.1-rc.2, and v0.1.0-rc.8).
 
 ## Development
 
