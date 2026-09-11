@@ -7,6 +7,14 @@ import type { SearchHit } from './access.js'
 export interface SearchOptions { dir?: string; context?: number; limit?: number }
 interface RawMatch { file: string; line: number }
 
+interface RgMatchEvent {
+  type?: string
+  data?: {
+    path?: { text?: string }
+    line_number?: number
+  }
+}
+
 export async function searchVault(
   vaultRoot: string,
   excludeDirs: string[],
@@ -68,7 +76,7 @@ async function rawMatches(base: string, excludeDirs: string[], query: string): P
 }
 
 export function rgArgs(query: string, excludeDirs: string[]): string[] {
-  const args = ['-n', '-i', '-F', '--no-heading', '--with-filename', '--no-ignore', '-e', query]
+  const args = ['--json', '-n', '-i', '-F', '--no-heading', '--with-filename', '--no-ignore', '-e', query]
   for (const d of excludeDirs) args.push('-g', `!**/${d}/**`)
   return args
 }
@@ -80,14 +88,16 @@ async function rgMatches(base: string, excludeDirs: string[], query: string): Pr
   const out: RawMatch[] = []
   for (const line of stdout.split('\n')) {
     if (!line) continue
-    const idx = line.indexOf(':')
-    if (idx < 0) continue
-    const file = line.slice(0, idx)
-    const rest = line.slice(idx + 1)
-    const idx2 = rest.indexOf(':')
-    if (idx2 < 0) continue
-    const lineNo = Number(rest.slice(0, idx2))
-    if (Number.isInteger(lineNo)) out.push({ file, line: lineNo })
+    let event: RgMatchEvent
+    try {
+      event = JSON.parse(line) as RgMatchEvent
+    } catch {
+      continue
+    }
+    if (event.type !== 'match') continue
+    const file = event.data?.path?.text
+    const lineNo = event.data?.line_number
+    if (file && typeof lineNo === 'number' && Number.isInteger(lineNo)) out.push({ file, line: lineNo })
   }
   return out.filter((m) => m.file.endsWith('.md'))
 }

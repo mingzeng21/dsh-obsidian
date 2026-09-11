@@ -1,7 +1,7 @@
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, writeFile, chmod, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { afterEach, describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { searchVault, rgArgs } from '../src/search.js'
 
 let tmp: string
@@ -18,6 +18,43 @@ async function makeVault(): Promise<string> {
 }
 
 describe('searchVault', () => {
+  it('finds matches from rg JSON output with a Windows drive-letter path', async () => {
+    tmp = await mkdtemp(path.join(os.tmpdir(), 'vault-'))
+    const bin = path.join(tmp, 'bin')
+    const vault = path.join(tmp, 'vault')
+    const file = process.platform === 'win32'
+      ? path.join(vault, 'notes', 'match.md')
+      : path.join(vault, 'D:', 'notes', 'match.md')
+    await mkdir(bin, { recursive: true })
+    await mkdir(path.dirname(file), { recursive: true })
+    await writeFile(file, 'keyword')
+
+    const rgEvent = JSON.stringify({ type: 'match', data: { path: { text: file }, line_number: 1 } })
+    await writeFile(path.join(bin, 'rg'), `#!/bin/sh\nif [ "$1" = "--version" ]; then exit 0; fi\nprintf '%s\\n' '${rgEvent}'\n`)
+    await writeFile(path.join(bin, 'rg.cmd'), `@echo off\r\nif "%1"=="--version" exit /b 0\r\necho ${rgEvent}\r\n`)
+
+    if (process.platform !== 'win32') {
+      await chmod(path.join(bin, 'rg'), 0o755)
+    }
+
+    const previousPath = process.env.PATH
+    process.env.PATH = bin + path.delimiter + previousPath
+    try {
+      vi.resetModules()
+      const { searchVault: searchWithFakeRg } = await import('../src/search.js')
+      const hits = await searchWithFakeRg(vault, [], 'keyword')
+      expect(hits).toEqual([{
+        path: path.relative(vault, file),
+        line: 1,
+        lineText: 'keyword',
+        contextBefore: [],
+        contextAfter: [],
+      }])
+    } finally {
+      process.env.PATH = previousPath
+    }
+  })
+
   it('finds matches with line numbers and context, sorted', async () => {
     const v = await makeVault()
     const hits = await searchVault(v, ['.obsidian', '.git', '.trash'], 'alpha')
@@ -75,6 +112,7 @@ describe('searchVault', () => {
 describe('rgArgs', () => {
   it('disables ignore files so results match the JS scanner', () => {
     const args = rgArgs('alpha', ['.obsidian', '.git', '.trash'])
+    expect(args).toContain('--json')
     expect(args).toContain('--no-ignore')
     expect(args).toContain('!**/.obsidian/**')
   })
