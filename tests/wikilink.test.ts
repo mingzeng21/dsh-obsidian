@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractLinkTargets, noteTitleFromPath, resolveLinkTarget } from '../src/wikilink.js'
+import { extractLinkTargets, normalizeNotePath, noteTitleFromPath, resolveLinkTarget } from '../src/wikilink.js'
 
 describe('extractLinkTargets', () => {
   it('extracts simple, aliased, and heading links', () => {
@@ -16,6 +16,13 @@ describe('noteTitleFromPath', () => {
   it('strips directory and .md extension', () => {
     expect(noteTitleFromPath('Folder/My Note.md')).toBe('My Note')
     expect(noteTitleFromPath('Root.md')).toBe('Root')
+  })
+})
+
+describe('normalizeNotePath', () => {
+  it('converts Windows separators to vault-relative separators', () => {
+    expect(normalizeNotePath('书籍笔记\\01-创伤与解离\\00-全书概览.md'))
+      .toBe('书籍笔记/01-创伤与解离/00-全书概览.md')
   })
 })
 
@@ -38,5 +45,11 @@ describe('resolveLinkTarget', () => {
 
   it('returns null when the basename is ambiguous', () => {
     expect(resolveLinkTarget('Foo', ['a/Foo.md', 'b/Foo.md'])).toBeNull()
+  })
+
+  it('resolves a forward-slash wikilink against a normalized Windows-style note path', () => {
+    const target = '书籍笔记/01-创伤与解离/创伤心理学-拆解/00-全书概览'
+    const windowsPath = target.replaceAll('/', '\\') + '.md'
+    expect(resolveLinkTarget(target, [normalizeNotePath(windowsPath)])).toBe(target)
   })
 })

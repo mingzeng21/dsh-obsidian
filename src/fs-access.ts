@@ -2,7 +2,7 @@ import path from 'node:path'
 import { mkdir, readFile, writeFile, rename, stat } from 'node:fs/promises'
 import { parseFrontmatter, setFrontmatterProperty, deleteFrontmatterProperty } from './frontmatter.js'
 import { extractTags } from './tags.js'
-import { extractLinkTargets, noteTitleFromPath, resolveLinkTarget, stripMd } from './wikilink.js'
+import { extractLinkTargets, normalizeNotePath, noteTitleFromPath, resolveLinkTarget, stripMd } from './wikilink.js'
 import { rewriteNoteLinks } from './link-update.js'
 import { renameAcrossDevices } from './rename.js'
 import { searchVault, walkMarkdownFiles } from './search.js'
@@ -52,8 +52,8 @@ export class FsAccess implements VaultAccess {
 
   async backlinks(notePath: string): Promise<Backlink[]> {
     const files = await walkMarkdownFiles(this.vaultRoot, this.excludeDirs)
-    const notePaths = files.map((f) => path.relative(this.vaultRoot, f))
-    const target = stripMd(notePath)
+    const notePaths = files.map((f) => normalizeNotePath(path.relative(this.vaultRoot, f)))
+    const target = stripMd(normalizeNotePath(notePath))
     const out: Backlink[] = []
     for (const file of files) {
       const content = await readFile(file, 'utf8')

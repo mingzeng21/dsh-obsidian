@@ -55,6 +55,22 @@ describe('FsAccess', () => {
     expect((await a.backlinks('a/Foo.md')).map((b) => b.path)).toContain('x.md')
   })
 
+  it('finds an aliased backlink for a nested Unicode path', async () => {
+    const access = new FsAccess(await makeVault(), [])
+    const target = '书籍笔记/01-创伤与解离/创伤心理学-拆解/00-全书概览.md'
+    await access.write(target, '# 全书概览\n')
+    await access.write('source.md', `参见 [[${target.replace(/\.md$/, '')}|别名]]\n`)
+
+    const windowsTarget = target.replaceAll('/', '\\')
+    const expected = {
+      path: 'source.md',
+      title: 'source',
+      snippet: `参见 [[${target.replace(/\.md$/, '')}|别名]]`,
+    }
+    expect(await access.backlinks(target)).toEqual([expected])
+    expect(await access.backlinks(windowsTarget)).toEqual([expected])
+  })
+
   it('writes a new note and reports created', async () => {
     const a = new FsAccess(await makeVault(), [])
     const w = await a.write('notes/three.md', 'hello')

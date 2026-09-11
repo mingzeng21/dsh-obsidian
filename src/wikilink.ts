@@ -10,8 +10,12 @@ export function extractLinkTargets(content: string): string[] {
 }
 
 export function noteTitleFromPath(filePath: string): string {
-  const base = filePath.split('/').pop() ?? filePath
+  const base = filePath.split(/[\\/]/).pop() ?? filePath
   return base.replace(/\.md$/i, '')
+}
+
+export function normalizeNotePath(p: string): string {
+  return p.replace(/\\/g, '/')
 }
 
 export function stripMd(p: string): string {
