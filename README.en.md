@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 Or pin a specific version:
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.3
+dsh plugin --profile web add dsh-obsidian@0.2.4
 ```
 
 Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
@@ -117,6 +117,12 @@ npm test           # vitest
 
 ## Changelog
 
+### 0.2.4
+
+- Harden Windows compatibility: standardize agent-facing paths on `/`, accept `\\` inputs, and reject drive-letter/UNC absolute path escapes.
+- Fix Windows search, backlink, move/delete result paths, and wikilink rewriting; cover CRLF, Unicode, and mixed-case Markdown extensions such as `.MD`.
+- Support Windows `.exe`/`.cmd` forms for `ripgrep` and the Obsidian CLI, with automatic fallback to built-in implementations when unavailable or failing.
+
 ### 0.2.3
 
 - Fix source typecheck/build compatibility after `dsh` v0.1.2-alpha.2/alpha.3 stopped re-exporting `JsonValue` from `@deepseek-ai/dsh-tools`, while preserving compatibility with older dsh releases.
@@ -127,12 +133,6 @@ npm test           # vitest
 - `obsidian_backlinks` / `obsidian_move` resolve `[[wikilinks]]` uniquely following Obsidian's rules: same-named notes are no longer over-matched, and ambiguous links are no longer mis-rewritten.
 - `obsidian_set_property` / `obsidian_delete_property` preserve existing YAML comments, anchors/aliases, and block formatting instead of re-serializing.
 - Reliability: atomic writes when `obsidian_move` updates links, fallback for cross-filesystem moves/deletes, and consistent search results with or without ripgrep.
-
-### Windows compatibility
-
-- Standardize agent-facing paths on `/` while accepting Windows `\\` inputs; strengthen drive-letter, UNC, and vault-root containment checks.
-- Fix Windows search, backlink, move/delete result paths, and wikilink rewriting; cover CRLF, Unicode paths, and mixed-case Markdown extensions.
-- Support Windows `.exe`/`.cmd` forms for `ripgrep` and the Obsidian CLI, with built-in filesystem fallback when unavailable or failing.
 
 ## License
 

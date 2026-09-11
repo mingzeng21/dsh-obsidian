@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 或锁定具体版本：
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.3
+dsh plugin --profile web add dsh-obsidian@0.2.4
 ```
 
 更新后重启 harness（`dsh web`）或刷新 Web UI；用 `dsh plugin --profile web list` 确认版本。
@@ -117,6 +117,12 @@ npm test           # vitest
 
 ## 更新日志
 
+### 0.2.4
+
+- 全面加固 Windows 兼容性：agent-facing 路径统一使用 `/`，同时接受 `\\` 输入，并拒绝盘符/UNC 绝对路径越界。
+- 修复 Windows 下搜索、反链、移动/删除返回路径与 wikilink 重写；覆盖 CRLF、Unicode 和 `.MD` 等大小写扩展名。
+- 支持 Windows `.exe`/`.cmd` 形式的 `ripgrep` 与 Obsidian CLI；外部命令不可用或失败时自动回退到内置实现。
+
 ### 0.2.3
 
 - 修复 `dsh` v0.1.2-alpha.2/alpha.3 移除 `@deepseek-ai/dsh-tools` 的 `JsonValue` 转出后，插件源码无法 typecheck/build 的兼容性问题；保留对旧版 dsh 的兼容。
@@ -127,12 +133,6 @@ npm test           # vitest
 - `obsidian_backlinks` / `obsidian_move` 按 Obsidian 规则唯一解析 `[[链接]]`：同名笔记不再被误判，歧义链接不再被误改。
 - `obsidian_set_property` / `obsidian_delete_property` 编辑属性时保留原有 YAML 注释、锚点/别名与多行格式，不再整块重写。
 - 稳定性：`obsidian_move` 链接更新改为原子写；跨文件系统移动/删除自动回退；搜索在有/无 ripgrep 时结果一致。
-
-### Windows compatibility
-
-- 统一 agent-facing 路径为 `/`，同时接受 Windows `\\` 输入；加强驱动器路径、UNC 路径与 vault 根目录的边界校验。
-- 修复 Windows 下的搜索结果、反链、移动/删除返回路径与 wikilink 重写；处理 CRLF、Unicode 路径和大小写 Markdown 扩展名。
-- `ripgrep` 与 Obsidian CLI 支持 Windows `.exe`/`.cmd` 命令形式，并在不可用或失败时回退到内置文件系统实现。
 
 ## 许可证
 
