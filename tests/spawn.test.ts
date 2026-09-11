@@ -42,9 +42,9 @@ describe('binaryAvailable', () => {
     expect((await run(bareCommand, [])).stdout.trim()).toBe('cmd-ok')
   })
 
-  it('preserves safe spaces and Unicode arguments for a Windows script', async () => {
+  it('preserves safe spaces and Unicode for a Windows script path and arguments', async () => {
     if (process.platform !== 'win32') return
-    tmp = await mkdtemp(path.join(os.tmpdir(), 'spawn-'))
+    tmp = await mkdtemp(path.join(os.tmpdir(), 'spawn dir-'))
     const command = path.join(tmp, 'fixture.cmd')
     await writeFile(command, '@echo off\r\necho arg1=[%~1]\r\necho arg2=[%~2]\r\n')
     const result = await run(command, ['hello world', '你好'])

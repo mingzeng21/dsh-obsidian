@@ -83,7 +83,11 @@ function spawnCommand(cmd: string, args: string[], cwd?: string, stdio: 'pipe' |
   const comspec = process.env.ComSpec ?? process.env.COMSPEC ?? 'cmd.exe'
   const commandLine = [quoteWindowsArg(cmd), ...args.map(quoteWindowsArg)].join(' ')
   const shellCommand = commandLine.startsWith('"') ? `"${commandLine}"` : commandLine
-  return spawn(comspec, ['/d', '/s', '/c', shellCommand], { cwd, stdio: stdio === 'pipe' ? ['ignore', 'pipe', 'pipe'] : 'ignore' })
+  return spawn(comspec, ['/d', '/s', '/c', shellCommand], {
+    cwd,
+    stdio: stdio === 'pipe' ? ['ignore', 'pipe', 'pipe'] : 'ignore',
+    windowsVerbatimArguments: true,
+  })
 }
 
 function quoteWindowsArg(value: string): string {
