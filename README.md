@@ -65,12 +65,20 @@ dsh plugin --profile web remove dsh-obsidian
 | `useCli` | `false` | 可用时把 `property:set`/`property:remove` 委托给 `obsidian` CLI |
 | `excludeDirs` | `[".obsidian", ".git", ".trash"]` | 搜索/列出时排除的目录 |
 
+### 路径与 Windows 兼容性
+
+- 工具返回的路径始终是相对于 vault 根目录、使用 `/` 的路径；输入可以使用 `/` 或 `\\`。
+- 工具路径参数必须是相对路径。Unix 绝对路径、Windows 盘符路径和 UNC 绝对路径都会被拒绝；配置中的 `vaultPath` 可以是 Windows 本地路径或 UNC vault 根目录。
+- Windows 上笔记路径按大小写不敏感处理，并识别 `.md`、`.MD` 等大小写变体；Unix 保持大小写敏感与 `.md` 语义。
+- 搜索会去除 CRLF 的 `\\r`，保留 Unicode 路径和正文；`ripgrep` 只是可选加速器，不可用或执行失败时自动使用内置扫描。
+- vault 自动探测优先使用当前平台的 `obsidian.json` 位置（Windows `%APPDATA%`、macOS `Library/Application Support`、Linux `.config`），再尝试其他已知位置。CLI 支持 `.exe`/`.cmd` 形式，不可用时自动回退文件系统实现。
+
 ## 工具
 
 | 工具 | 作用 |
 | --- | --- |
 | `obsidian_list` | 列出 vault 里的笔记（可按子目录过滤、限制条数） |
-| `obsidian_search` | 全文检索，返回匹配行 + 上下文（大小写不敏感、只搜 `.md`） |
+| `obsidian_search` | 全文检索，返回匹配行 + 上下文（大小写不敏感；Windows 识别 `.md` 大小写变体） |
 | `obsidian_read` | 读取一篇笔记（正文 + 解析后的 frontmatter） |
 | `obsidian_frontmatter` | 只读笔记的 YAML 属性 |
 | `obsidian_backlinks` | 找出链接到某篇笔记的笔记（`[[wikilink]]`） |
@@ -82,11 +90,11 @@ dsh plugin --profile web remove dsh-obsidian
 | `obsidian_delete_property` | 删除笔记的某个 frontmatter 属性 |
 | `obsidian_tags` | 列出 vault 中所有标签及使用次数 |
 
-所有工具的路径参数都相对于 vault 根目录（例如 `Folder/Note.md`）。
+所有工具的路径参数都相对于 vault 根目录（例如 `Folder/Note.md`）；返回给 agent 的路径统一使用 `/`。
 
 ## 安全性
 
-- **路径越界防护** —— 所有路径参数都会解析并校验必须落在 vault 根目录内，越界（`../` 或绝对路径逃逸）一律拒绝。
+- **路径越界防护** —— 所有路径参数都会解析并校验必须落在 vault 根目录内，越界（`../`、Unix/Windows 绝对路径或 UNC 路径）一律拒绝。
 - **删除可逆** —— `obsidian_delete` 只把笔记移入 vault 的 `.trash/`，绝不永久删除。
 - **不碰 `.obsidian/`** —— 搜索与列出默认排除 `.obsidian/`、`.git/`、`.trash/`。
 - **保护 frontmatter 与 wikilink** —— 读取/写入不会破坏 YAML 属性和 `[[链接]]`（除非任务明确要求改）。
@@ -119,6 +127,12 @@ npm test           # vitest
 - `obsidian_backlinks` / `obsidian_move` 按 Obsidian 规则唯一解析 `[[链接]]`：同名笔记不再被误判，歧义链接不再被误改。
 - `obsidian_set_property` / `obsidian_delete_property` 编辑属性时保留原有 YAML 注释、锚点/别名与多行格式，不再整块重写。
 - 稳定性：`obsidian_move` 链接更新改为原子写；跨文件系统移动/删除自动回退；搜索在有/无 ripgrep 时结果一致。
+
+### Windows compatibility
+
+- 统一 agent-facing 路径为 `/`，同时接受 Windows `\\` 输入；加强驱动器路径、UNC 路径与 vault 根目录的边界校验。
+- 修复 Windows 下的搜索结果、反链、移动/删除返回路径与 wikilink 重写；处理 CRLF、Unicode 路径和大小写 Markdown 扩展名。
+- `ripgrep` 与 Obsidian CLI 支持 Windows `.exe`/`.cmd` 命令形式，并在不可用或失败时回退到内置文件系统实现。
 
 ## 许可证
 

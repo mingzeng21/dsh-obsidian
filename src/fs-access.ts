@@ -2,11 +2,12 @@ import path from 'node:path'
 import { mkdir, readFile, writeFile, rename, stat } from 'node:fs/promises'
 import { parseFrontmatter, setFrontmatterProperty, deleteFrontmatterProperty } from './frontmatter.js'
 import { extractTags } from './tags.js'
-import { extractLinkTargets, normalizeNotePath, noteTitleFromPath, resolveLinkTarget, stripMd } from './wikilink.js'
+import { extractLinkTargets, normalizeNotePath, noteTitleFromPath, resolveLinkTarget, sameNotePath, stripMd } from './wikilink.js'
 import { rewriteNoteLinks } from './link-update.js'
 import { renameAcrossDevices } from './rename.js'
 import { searchVault, walkMarkdownFiles } from './search.js'
-import { guardPath } from './vault-path.js'
+import { guardPath, normalizeVaultPath } from './vault-path.js'
+import { foldCase } from './case-fold.js'
 import type {
   VaultAccess, NoteRef, SearchHit, Backlink, ReadResult,
   FrontmatterData, WriteResult, AppendResult, MoveResult, DeleteResult, TagRef,
@@ -22,7 +23,7 @@ export class FsAccess implements VaultAccess {
     const files = await walkMarkdownFiles(base, this.excludeDirs)
     files.sort()
     return files.slice(0, limit).map((file) => ({
-      path: path.relative(this.vaultRoot, file),
+      path: normalizeVaultPath(path.relative(this.vaultRoot, file)),
       title: noteTitleFromPath(file),
     }))
   }
@@ -36,7 +37,7 @@ export class FsAccess implements VaultAccess {
     const content = await readFile(abs, 'utf8')
     const { data } = parseFrontmatter(content)
     return {
-      path: filePath.replace(/\\/g, '/'),
+      path: normalizeVaultPath(path.relative(this.vaultRoot, abs)),
       title: noteTitleFromPath(filePath),
       frontmatter: data,
       content,
@@ -47,22 +48,27 @@ export class FsAccess implements VaultAccess {
     const abs = guardPath(this.vaultRoot, filePath)
     const content = await readFile(abs, 'utf8')
     const { data, raw } = parseFrontmatter(content)
-    return { path: filePath.replace(/\\/g, '/'), data, raw }
+    return { path: normalizeVaultPath(path.relative(this.vaultRoot, abs)), data, raw }
   }
 
   async backlinks(notePath: string): Promise<Backlink[]> {
+    const targetAbs = guardPath(this.vaultRoot, notePath)
     const files = await walkMarkdownFiles(this.vaultRoot, this.excludeDirs)
     const notePaths = files.map((f) => normalizeNotePath(path.relative(this.vaultRoot, f)))
-    const target = stripMd(normalizeNotePath(notePath))
+    const target = stripMd(normalizeVaultPath(path.relative(this.vaultRoot, targetAbs)))
+    const resolvedTarget = notePaths.find((p) => sameNotePath(stripMd(p), target)) ?? notePath
     const out: Backlink[] = []
     for (const file of files) {
       const content = await readFile(file, 'utf8')
       const targets = extractLinkTargets(content)
-      if (!targets.some((t) => resolveLinkTarget(t, notePaths) === target)) continue
+      if (!targets.some((t) => {
+        const resolved = resolveLinkTarget(t, notePaths)
+        return resolved !== null && sameNotePath(resolved, target)
+      })) continue
       out.push({
-        path: path.relative(this.vaultRoot, file),
+        path: normalizeVaultPath(path.relative(this.vaultRoot, file)),
         title: noteTitleFromPath(file),
-        snippet: this.snippetFor(content, notePath),
+        snippet: this.snippetFor(content, resolvedTarget),
       })
     }
     return out
@@ -72,7 +78,7 @@ export class FsAccess implements VaultAccess {
     const abs = guardPath(this.vaultRoot, filePath)
     const existed = await this.exists(abs)
     await this.atomicWrite(abs, content)
-    return { path: filePath.replace(/\\/g, '/'), created: !existed }
+    return { path: normalizeVaultPath(path.relative(this.vaultRoot, abs)), created: !existed }
   }
 
   async append(filePath: string, content: string): Promise<AppendResult> {
@@ -80,31 +86,35 @@ export class FsAccess implements VaultAccess {
     const existing = (await this.exists(abs)) ? await readFile(abs, 'utf8') : ''
     const separator = existing && !existing.endsWith('\n') ? '\n' : ''
     await this.atomicWrite(abs, existing + separator + content)
-    return { path: filePath.replace(/\\/g, '/') }
+    return { path: normalizeVaultPath(path.relative(this.vaultRoot, abs)) }
   }
 
   async move(from: string, to: string): Promise<MoveResult> {
-    const fromAbs = guardPath(this.vaultRoot, from)
-    const toAbs = guardPath(this.vaultRoot, to)
+    const normalizedFrom = normalizeVaultPath(from)
+    const normalizedTo = normalizeVaultPath(to)
+    const fromAbs = guardPath(this.vaultRoot, normalizedFrom)
+    const toAbs = guardPath(this.vaultRoot, normalizedTo)
+    const canonicalFrom = normalizeVaultPath(path.relative(this.vaultRoot, fromAbs))
+    const canonicalTo = normalizeVaultPath(path.relative(this.vaultRoot, toAbs))
     const notePaths = (await walkMarkdownFiles(this.vaultRoot, this.excludeDirs))
-      .map((f) => path.relative(this.vaultRoot, f))
+      .map((f) => normalizeVaultPath(path.relative(this.vaultRoot, f)))
     await mkdir(path.dirname(toAbs), { recursive: true })
     await renameAcrossDevices(fromAbs, toAbs)
     let linksUpdated = false
     for (const file of await walkMarkdownFiles(this.vaultRoot, this.excludeDirs)) {
       const content = await readFile(file, 'utf8')
-      const { content: next, changed } = rewriteNoteLinks(content, from, to, notePaths)
+      const { content: next, changed } = rewriteNoteLinks(content, canonicalFrom, canonicalTo, notePaths)
       if (changed) {
         await this.atomicWrite(file, next)
         linksUpdated = true
       }
     }
-    return { from: from.replace(/\\/g, '/'), to: to.replace(/\\/g, '/'), linksUpdated }
+    return { from: canonicalFrom, to: canonicalTo, linksUpdated }
   }
 
   async delete(filePath: string): Promise<DeleteResult> {
     const abs = guardPath(this.vaultRoot, filePath)
-    const rel = path.relative(this.vaultRoot, abs)
+    const rel = normalizeVaultPath(path.relative(this.vaultRoot, abs))
     const trashDir = path.join(this.vaultRoot, '.trash')
     await mkdir(trashDir, { recursive: true })
     let target = path.join(trashDir, rel)
@@ -115,7 +125,7 @@ export class FsAccess implements VaultAccess {
     }
     await mkdir(path.dirname(target), { recursive: true })
     await renameAcrossDevices(abs, target)
-    return { path: filePath.replace(/\\/g, '/'), trashedTo: path.relative(this.vaultRoot, target) }
+    return { path: rel, trashedTo: normalizeVaultPath(path.relative(this.vaultRoot, target)) }
   }
 
   async setProperty(filePath: string, key: string, value: JsonValue): Promise<FrontmatterData> {
@@ -158,8 +168,10 @@ export class FsAccess implements VaultAccess {
 
   private snippetFor(content: string, notePath: string): string {
     const title = noteTitleFromPath(notePath)
-    for (const line of content.split('\n')) {
-      if (line.includes(title)) return line.trim()
+    const needle = process.platform === 'win32' ? foldCase(title) : title
+    for (const line of content.split(/\r?\n/)) {
+      const haystack = process.platform === 'win32' ? foldCase(line) : line
+      if (haystack.includes(needle)) return line.trim()
     }
     return ''
   }

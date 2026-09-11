@@ -32,6 +32,12 @@ describe('FsAccess', () => {
     expect(r.content).toContain('Body one')
   })
 
+  it('accepts Windows separators in public path inputs', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    const r = await a.read('notes\\one.md')
+    expect(r.path).toBe('notes/one.md')
+  })
+
   it('finds backlinks', async () => {
     const a = new FsAccess(await makeVault(), [])
     const backlinks = await a.backlinks('notes/one.md')
@@ -71,6 +77,18 @@ describe('FsAccess', () => {
     expect(await access.backlinks(windowsTarget)).toEqual([expected])
   })
 
+  it('matches Windows note identity and snippets without case sensitivity', async () => {
+    if (process.platform !== 'win32') return
+    const access = new FsAccess(await makeVault(), [])
+    await access.write('Folder/Note.MD', '# Note\n')
+    await access.write('source.md', 'See [[Note]]\r\n')
+    expect(await access.backlinks('folder\\note.md')).toEqual([{
+      path: 'source.md',
+      title: 'source',
+      snippet: 'See [[Note]]',
+    }])
+  })
+
   it('writes a new note and reports created', async () => {
     const a = new FsAccess(await makeVault(), [])
     const w = await a.write('notes/three.md', 'hello')
@@ -106,6 +124,20 @@ describe('FsAccess', () => {
     expect(await readFile(path.join(tmp, 'notes', 'one.md'), 'utf8')).toContain('[[renamed]]')
   })
 
+  it('moves with Windows separators and updates wikilinks', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    const m = await a.move('notes\\two.md', 'notes\\renamed.md')
+    expect(m).toEqual({ from: 'notes/two.md', to: 'notes/renamed.md', linksUpdated: true })
+    expect(await readFile(path.join(tmp, 'notes', 'one.md'), 'utf8')).toContain('[[renamed]]')
+  })
+
+  it('canonicalizes dot segments before rewriting links', async () => {
+    const a = new FsAccess(await makeVault(), [])
+    const m = await a.move('./notes/../notes/two.md', './archive/../notes/renamed.md')
+    expect(m).toEqual({ from: 'notes/two.md', to: 'notes/renamed.md', linksUpdated: true })
+    expect(await readFile(path.join(tmp, 'notes', 'one.md'), 'utf8')).toContain('[[renamed]]')
+  })
+
   it('leaves no temp files behind after a link-updating move', async () => {
     const a = new FsAccess(await makeVault(), [])
     const m = await a.move('notes/two.md', 'notes/renamed.md')
@@ -132,6 +164,7 @@ describe('FsAccess', () => {
   it('rejects a path escaping the vault', async () => {
     const a = new FsAccess(await makeVault(), [])
     await expect(a.read('../secret.md')).rejects.toThrow(/escapes/)
+    await expect(a.backlinks('../secret.md')).rejects.toThrow(/escapes/)
   })
 
   it('sets and deletes a frontmatter property', async () => {

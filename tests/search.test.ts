@@ -44,7 +44,7 @@ describe('searchVault', () => {
       const { searchVault: searchWithFakeRg } = await import('../src/search.js')
       const hits = await searchWithFakeRg(vault, [], 'keyword')
       expect(hits).toEqual([{
-        path: path.relative(vault, file),
+        path: path.relative(vault, file).replaceAll('\\', '/'),
         line: 1,
         lineText: 'keyword',
         contextBefore: [],
@@ -55,11 +55,69 @@ describe('searchVault', () => {
     }
   })
 
+  it('falls back to the JS scanner when ripgrep is unavailable', async () => {
+    tmp = await mkdtemp(path.join(os.tmpdir(), 'vault-'))
+    const bin = path.join(tmp, 'bin')
+    const vault = path.join(tmp, 'vault')
+    await mkdir(bin, { recursive: true })
+    await mkdir(vault, { recursive: true })
+    await writeFile(path.join(vault, 'fallback.md'), 'fallback keyword')
+    await writeFile(path.join(bin, 'rg'), '#!/bin/sh\nif [ "$1" = "--version" ]; then exit 1; fi\nexit 2\n')
+    await writeFile(path.join(bin, 'rg.cmd'), '@echo off\r\nif "%1"=="--version" exit /b 1\r\nexit /b 2\r\n')
+    if (process.platform !== 'win32') await chmod(path.join(bin, 'rg'), 0o755)
+
+    const previousPath = process.env.PATH
+    process.env.PATH = bin + path.delimiter + previousPath
+    try {
+      vi.resetModules()
+      const { searchVault: searchWithoutRg } = await import('../src/search.js')
+      await expect(searchWithoutRg(vault, [], 'keyword')).resolves.toMatchObject([
+        { path: 'fallback.md', line: 1, lineText: 'fallback keyword' },
+      ])
+    } finally {
+      process.env.PATH = previousPath
+    }
+  })
+
   it('finds matches with line numbers and context, sorted', async () => {
     const v = await makeVault()
     const hits = await searchVault(v, ['.obsidian', '.git', '.trash'], 'alpha')
     expect(hits.map((h) => `${h.path}:${h.line}`)).toEqual(['a.md:1', 'a.md:2', 'notes/b.md:1'])
     expect(hits[0].contextAfter).toEqual(['beta alpha'])
+  })
+
+  it('returns slash-separated paths and strips CR from CRLF lines', async () => {
+    const v = await makeVault()
+    await writeFile(path.join(v, 'notes', 'crlf.md'), 'before\r\nneedle here\r\nafter\r\n')
+    const hits = await searchVault(v, [], 'needle', { context: 1 })
+    expect(hits).toEqual([{
+      path: 'notes/crlf.md',
+      line: 2,
+      lineText: 'needle here',
+      contextBefore: ['before'],
+      contextAfter: ['after'],
+    }])
+  })
+
+  it('recognizes mixed-case Markdown extensions only on Windows', async () => {
+    const v = await makeVault()
+    await writeFile(path.join(v, 'notes', 'upper.MD'), 'upper extension keyword')
+    const hits = await searchVault(v, [], 'extension')
+    if (process.platform === 'win32') expect(hits.map((h) => h.path)).toEqual(['notes/upper.MD'])
+    else expect(hits).toEqual([])
+  })
+
+  it('uses Unicode case folding consistently for the search backends', async () => {
+    const v = await makeVault()
+    await writeFile(path.join(v, 'sigma.md'), 'ς final sigma')
+    await writeFile(path.join(v, 'symbol-beta.md'), 'ϐ symbol beta')
+    await writeFile(path.join(v, 'dotted-i.md'), 'İ')
+    await writeFile(path.join(v, 'cherokee.md'), 'Ꭰ')
+    const hits = await searchVault(v, [], 'σ')
+    expect(hits.map((h) => h.path)).toContain('sigma.md')
+    expect((await searchVault(v, [], 'β')).map((h) => h.path)).toContain('symbol-beta.md')
+    expect((await searchVault(v, [], 'i')).map((h) => h.path)).not.toContain('dotted-i.md')
+    expect((await searchVault(v, [], 'ꭰ')).map((h) => h.path)).toContain('cherokee.md')
   })
 
   it('excludes hidden dirs and configured excludeDirs', async () => {

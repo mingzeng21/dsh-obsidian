@@ -45,4 +45,10 @@ describe('rewriteNoteLinks', () => {
     expect(r.changed).toBe(true)
     expect(r.content).toBe('see [[b/Bar]]')
   })
+
+  it('normalizes Windows separators at the link-rewrite boundary', () => {
+    const r = rewriteNoteLinks('see [[Folder/A]]', 'Folder\\A.md', 'Other\\B.md', ['Folder\\A.md'])
+    expect(r.content).toBe('see [[Other/B]]')
+    expect(r.changed).toBe(true)
+  })
 })

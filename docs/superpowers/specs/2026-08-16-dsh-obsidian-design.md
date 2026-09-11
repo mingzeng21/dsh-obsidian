@@ -1,7 +1,7 @@
 # dsh-obsidian 设计文档
 
 - 日期：2026-08-16
-- 状态：已确认（待实现）
+- 状态：已确认（实现基线）
 - 参考插件：`dsh-notion-mcp`（本地 `/Users/admin/Mingdom/dsh-notion/`）
 
 ## 1. 背景与目标
@@ -52,6 +52,8 @@ export const Config = z.object({
 - Windows: `%APPDATA%/obsidian/obsidian.json`
 - Linux: `~/.config/obsidian/obsidian.json`
 
+路径契约：工具参数和返回值都是 vault-relative path。返回值统一使用 `/`，输入同时接受 `/` 与 `\\`；工具参数拒绝 Unix 绝对路径、Windows 盘符绝对路径与 UNC 绝对路径。配置的 `vaultPath` 是内部文件系统路径，可以是 Windows 本地路径或 UNC vault 根目录。Windows 按大小写不敏感识别笔记，并识别 `.md` 的大小写变体；Unix 保持大小写敏感与 `.md` 语义。自动探测优先当前平台的位置，再回退到其他已知位置。
+
 ## 4. 工具集（tools，前缀 `obsidian_`）
 
 所有工具通过 `ctx.tools.register(defineTool({...}))` 注册。路径均为**相对 vault 根**的路径。
@@ -100,11 +102,11 @@ CLI 检测：`spawn('obsidian', ['version'])` 成功即视为可用，结果缓�
 
 ### 搜索实现
 
-`rg` 可用时 `spawn('rg', ['-n', '--no-heading', ...])`；否则 JS 递归扫描（`node:fs` `recursive: true`）+ 逐行匹配。始终排除 `excludeDirs`。
+`rg` 可用时 `spawn('rg', ['-n', '--no-heading', ...])`；Windows 支持 `rg.exe`/`rg.cmd`，否则 JS 递归扫描 + 逐行匹配。`rg` 不可用或执行失败时必须回退到 JS，且两条路径的结果语义一致；搜索返回的行文本不包含 CRLF 的 `\\r`。始终排除 `excludeDirs`。
 
 ## 6. 安全模型
 
-- **路径穿越防护**：所有入参路径 `path.resolve(vaultRoot, rel)` 后必须落在 `vaultRoot` 内，否则拒绝并返回错误
+- **路径穿越防护**：所有入参路径先接受 `/` 或 `\\` 并规范化，再用 `path.resolve(vaultRoot, rel)` 校验必须落在 `vaultRoot` 内；Unix/Windows/UNC 绝对路径参数一律拒绝。配置中的 UNC vault 根目录允许作为内部根路径。
 - 不碰 `.obsidian/`（除非任务明确是配置工作）
 - 删除只进 `.trash/`，可逆
 - 保护 frontmatter 和 wikilink（除非任务明确要求改）
@@ -120,10 +122,10 @@ CLI 检测：`spawn('obsidian', ['version'])` 成功即视为可用，结果缓�
 
 ## 8. 测试
 
-- `FsAccess`：临时目录构造 fixture vault，测 read/list/search/write/append/move/delete/frontmatter/backlinks
+- `FsAccess`：临时目录构造 fixture vault，测 read/list/search/write/append/move/delete/frontmatter/backlinks；Windows 验证 `/` 返回路径、`\\` 输入、Unicode/CRLF、大小写扩展名与移动后的链接更新
 - frontmatter / wikilink 解析单测
 - 路径 guard（越界拒绝）单测
-- CLI 检测与回退：打桩 `spawn`，测 CLI 可用/不可用分支
+- CLI 检测与回退：打桩 `spawn`，测 CLI 可用/不可用分支及 Windows `.cmd` 形式；ripgrep 有/无与失败时的结果一致
 - 每个 tool 的 schema + execute 冒烟测试
 
 ## 9. 发布与贡献

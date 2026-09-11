@@ -1,4 +1,5 @@
-import { noteTitleFromPath, resolveLinkTarget, stripMd } from './wikilink.js'
+import { noteTitleFromPath, resolveLinkTarget, sameNotePath, stripMd } from './wikilink.js'
+import { normalizeVaultPath } from './vault-path.js'
 
 const WIKILINK_RE = /\[\[([^\[\]\n|#]+)(#[^\[\]\n|]*)?(\|[^\[\]\n]*)?\]\]/g
 
@@ -8,14 +9,17 @@ export interface LinkRewriteResult {
 }
 
 export function rewriteNoteLinks(content: string, from: string, to: string, notePaths: string[]): LinkRewriteResult {
-  const fromBase = noteTitleFromPath(from)
-  const toBase = noteTitleFromPath(to)
-  const fromPath = stripMd(from)
-  const toPath = stripMd(to)
+  const normalizedFrom = normalizeVaultPath(from)
+  const normalizedTo = normalizeVaultPath(to)
+  const fromBase = noteTitleFromPath(normalizedFrom)
+  const toBase = noteTitleFromPath(normalizedTo)
+  const fromPath = stripMd(normalizedFrom)
+  const toPath = stripMd(normalizedTo)
   let changed = false
   const out = content.replace(WIKILINK_RE, (match, target: string, heading?: string, alias?: string) => {
-    if (resolveLinkTarget(target, notePaths) !== fromPath) return match
-    const newTarget = stripMd(target) === fromBase ? toBase : toPath
+    const resolved = resolveLinkTarget(target, notePaths)
+    if (!resolved || !sameNotePath(resolved, fromPath)) return match
+    const newTarget = sameNotePath(stripMd(target), fromBase) ? toBase : toPath
     const replacement = `[[${newTarget}${heading ?? ''}${alias ?? ''}]]`
     if (replacement !== match) changed = true
     return replacement

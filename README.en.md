@@ -65,12 +65,20 @@ dsh plugin --profile web remove dsh-obsidian
 | `useCli` | `false` | Delegate `property:set`/`property:remove` to the `obsidian` CLI when available |
 | `excludeDirs` | `[".obsidian", ".git", ".trash"]` | Directories excluded from search and list |
 
+### Paths and Windows compatibility
+
+- Tool paths are vault-relative and are always returned with `/`; inputs may use either `/` or `\\`.
+- Tool path arguments must be relative. Unix absolute paths, Windows drive-letter paths, and UNC absolute paths are rejected; the configured `vaultPath` may be a local Windows path or a UNC vault root.
+- Windows note identity is case-insensitive and recognizes `.md`, `.MD`, and other case variants; Unix keeps case-sensitive behavior and the existing `.md` semantics.
+- Search removes `\\r` from CRLF lines while preserving Unicode paths and content. `ripgrep` is an optional accelerator: if it is unavailable or fails, the built-in scanner is used automatically.
+- Vault discovery prefers the platform-native `obsidian.json` location (Windows `%APPDATA%`, macOS `Library/Application Support`, Linux `.config`) before trying other known locations. `.exe`/`.cmd` CLI forms are supported and filesystem access remains the fallback.
+
 ## Tools
 
 | Tool | Purpose |
 | --- | --- |
 | `obsidian_list` | List notes in the vault (filter by subdirectory, limit results) |
-| `obsidian_search` | Full-text search with match lines + context (case-insensitive, `.md` only) |
+| `obsidian_search` | Full-text search with match lines + context (case-insensitive; Windows recognizes mixed-case `.md` extensions) |
 | `obsidian_read` | Read a note (body + parsed frontmatter) |
 | `obsidian_frontmatter` | Read only a note's YAML properties |
 | `obsidian_backlinks` | Find notes linking to a note via `[[wikilinks]]` |
@@ -82,11 +90,11 @@ dsh plugin --profile web remove dsh-obsidian
 | `obsidian_delete_property` | Remove a frontmatter property from a note |
 | `obsidian_tags` | List all tags in the vault with usage counts |
 
-All tool path arguments are relative to the vault root (e.g. `Folder/note.md`).
+All tool path arguments are relative to the vault root (e.g. `Folder/note.md`); paths returned to the agent always use `/`.
 
 ## Safety
 
-- **Path containment** — every path argument is resolved and checked to stay inside the vault root; escapes (`../` or absolute paths) are rejected.
+- **Path containment** — every path argument is resolved and checked to stay inside the vault root; escapes (`../`, Unix/Windows absolute paths, or UNC paths) are rejected.
 - **Reversible delete** — `obsidian_delete` only moves notes into the vault's `.trash/`, never permanently deletes.
 - **Hands off `.obsidian/`** — search and list exclude `.obsidian/`, `.git/`, and `.trash/` by default.
 - **Preserves frontmatter and wikilinks** — reads/writes don't break YAML properties or `[[links]]` (unless the task explicitly asks).
@@ -119,6 +127,12 @@ npm test           # vitest
 - `obsidian_backlinks` / `obsidian_move` resolve `[[wikilinks]]` uniquely following Obsidian's rules: same-named notes are no longer over-matched, and ambiguous links are no longer mis-rewritten.
 - `obsidian_set_property` / `obsidian_delete_property` preserve existing YAML comments, anchors/aliases, and block formatting instead of re-serializing.
 - Reliability: atomic writes when `obsidian_move` updates links, fallback for cross-filesystem moves/deletes, and consistent search results with or without ripgrep.
+
+### Windows compatibility
+
+- Standardize agent-facing paths on `/` while accepting Windows `\\` inputs; strengthen drive-letter, UNC, and vault-root containment checks.
+- Fix Windows search, backlink, move/delete result paths, and wikilink rewriting; cover CRLF, Unicode paths, and mixed-case Markdown extensions.
+- Support Windows `.exe`/`.cmd` forms for `ripgrep` and the Obsidian CLI, with built-in filesystem fallback when unavailable or failing.
 
 ## License
 

@@ -1,6 +1,6 @@
 import { FsAccess } from './fs-access.js'
 import { run } from './spawn.js'
-import { guardPath } from './vault-path.js'
+import { guardPath, normalizeVaultPath } from './vault-path.js'
 import type { FrontmatterData } from './access.js'
 import type { JsonValue } from './json-value.js'
 
@@ -10,22 +10,24 @@ function cliValue(value: JsonValue): string {
 
 export class CliAccess extends FsAccess {
   async setProperty(notePath: string, key: string, value: JsonValue): Promise<FrontmatterData> {
-    guardPath(this.vaultRoot, notePath)
+    const normalizedPath = normalizeVaultPath(notePath)
+    guardPath(this.vaultRoot, normalizedPath)
     try {
-      await run('obsidian', ['property:set', `name=${key}`, `value=${cliValue(value)}`, `path=${notePath}`], { cwd: this.vaultRoot })
-      return this.frontmatter(notePath)
+      await run('obsidian', ['property:set', `name=${key}`, `value=${cliValue(value)}`, `path=${normalizedPath}`], { cwd: this.vaultRoot })
+      return this.frontmatter(normalizedPath)
     } catch {
-      return super.setProperty(notePath, key, value)
+      return super.setProperty(normalizedPath, key, value)
     }
   }
 
   async deleteProperty(notePath: string, key: string): Promise<FrontmatterData> {
-    guardPath(this.vaultRoot, notePath)
+    const normalizedPath = normalizeVaultPath(notePath)
+    guardPath(this.vaultRoot, normalizedPath)
     try {
-      await run('obsidian', ['property:remove', `name=${key}`, `path=${notePath}`], { cwd: this.vaultRoot })
-      return this.frontmatter(notePath)
+      await run('obsidian', ['property:remove', `name=${key}`, `path=${normalizedPath}`], { cwd: this.vaultRoot })
+      return this.frontmatter(normalizedPath)
     } catch {
-      return super.deleteProperty(notePath, key)
+      return super.deleteProperty(normalizedPath, key)
     }
   }
 }

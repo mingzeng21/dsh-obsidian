@@ -52,4 +52,14 @@ describe('resolveLinkTarget', () => {
     const windowsPath = target.replaceAll('/', '\\') + '.md'
     expect(resolveLinkTarget(target, [normalizeNotePath(windowsPath)])).toBe(target)
   })
+
+  it('resolves Windows separators without requiring callers to normalize first', () => {
+    expect(resolveLinkTarget('Folder\\My Note', ['Folder\\My Note.md'])).toBe('Folder/My Note')
+  })
+
+  it('uses case-insensitive note identity on Windows', () => {
+    const resolved = resolveLinkTarget('folder/note', ['Folder/Note.md'])
+    if (process.platform === 'win32') expect(resolved).toBe('Folder/Note')
+    else expect(resolved).toBeNull()
+  })
 })

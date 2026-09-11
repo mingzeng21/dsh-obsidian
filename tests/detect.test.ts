@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { describe, it, expect } from 'vitest'
 import { setupAccess } from '../src/detect.js'
 import { FsAccess } from '../src/fs-access.js'
@@ -9,7 +10,7 @@ describe('setupAccess', () => {
       { vaultPath: '/tmp/vault', useCli: true, excludeDirs: [] },
       { detectVaultRoot: async () => null, cliAvailable: async () => false },
     )
-    expect(setup.vaultRoot).toBe('/tmp/vault')
+    expect(setup.vaultRoot).toBe(path.resolve('/tmp/vault'))
     expect(setup.access).toBeInstanceOf(FsAccess)
   })
 

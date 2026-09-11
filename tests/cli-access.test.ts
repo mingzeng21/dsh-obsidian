@@ -25,6 +25,13 @@ describe('CliAccess', () => {
     expect(run).toHaveBeenCalledWith('obsidian', ['property:set', 'name=status', 'value=done', 'path=notes/one.md'], { cwd: a.vaultRoot })
   })
 
+  it('normalizes Windows separators before delegating to the CLI', async () => {
+    vi.mocked(run).mockResolvedValue({ stdout: '', stderr: '' })
+    const a = new CliAccess(await makeVault(), ['.obsidian', '.git', '.trash'])
+    await a.setProperty('notes\\one.md', 'status', 'done')
+    expect(run).toHaveBeenCalledWith('obsidian', ['property:set', 'name=status', 'value=done', 'path=notes/one.md'], { cwd: a.vaultRoot })
+  })
+
   it('falls back to fs when the CLI fails', async () => {
     vi.mocked(run).mockRejectedValue(new Error('no obsidian'))
     const a = new CliAccess(await makeVault(), ['.obsidian', '.git', '.trash'])
