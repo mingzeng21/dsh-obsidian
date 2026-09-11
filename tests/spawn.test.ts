@@ -46,7 +46,7 @@ describe('binaryAvailable', () => {
     if (process.platform !== 'win32') return
     tmp = await mkdtemp(path.join(os.tmpdir(), 'spawn-'))
     const command = path.join(tmp, 'fixture.cmd')
-    await writeFile(command, '@echo off\r\necho arg1=[%1]\r\necho arg2=[%2]\r\n')
+    await writeFile(command, '@echo off\r\necho arg1=[%~1]\r\necho arg2=[%~2]\r\n')
     const result = await run(command, ['hello world', '你好'])
     expect(result.stdout).toContain('arg1=[hello world]')
     expect(result.stdout).toContain('arg2=[你好]')
