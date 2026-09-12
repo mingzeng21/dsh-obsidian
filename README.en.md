@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 Or pin a specific version:
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.4
+dsh plugin --profile web add dsh-obsidian@0.2.5
 ```
 
 Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
@@ -116,6 +116,10 @@ npm test           # vitest
 ```
 
 ## Changelog
+
+### 0.2.5
+
+- Fix double quoting of Windows `.cmd` scripts so commands work when script paths or arguments contain spaces or Unicode characters.
 
 ### 0.2.4
 
