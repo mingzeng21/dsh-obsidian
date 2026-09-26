@@ -2,7 +2,7 @@
 
 Connect [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`) to a local [Obsidian](https://obsidian.md) vault. Because an Obsidian vault is just a folder of Markdown files on disk, your `dsh` agent can search, read, write, move, and trash notes directly — **no MCP server, no OAuth**.
 
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.1.5-alpha.1 verified](https://img.shields.io/badge/dsh-v0.1.5--alpha.1%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.1.7-rc.2 verified](https://img.shields.io/badge/dsh-v0.1.7--rc.2%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness)
 
 [中文](README.md) | English
 
@@ -104,7 +104,7 @@ All tool path arguments are relative to the vault root (e.g. `Folder/note.md`); 
 - [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`)
 - Node.js ≥ 22.12.0
 
-Compatibility has been verified through `dsh` v0.1.5-alpha.1 (including v0.1.3-alpha.2, v0.1.3-alpha.1, v0.1.2-rc.1, v0.1.2-alpha.5, v0.1.2-alpha.4, v0.1.2-alpha.3, v0.1.2-alpha.2, v0.1.2-alpha.1, v0.1.1-rc.2, and v0.1.0-rc.8).
+Compatibility has been verified with `dsh` v0.1.7-rc.2: the new profile loader accepts the plugin bundle, all 12 tools register, and `obsidian_list` and `obsidian_read` execute successfully against a temporary vault. Earlier checks covered v0.1.5-alpha.1, v0.1.3-alpha.2, v0.1.3-alpha.1, v0.1.2-rc.1, v0.1.2-alpha.5, v0.1.2-alpha.4, v0.1.2-alpha.3, v0.1.2-alpha.2, v0.1.2-alpha.1, v0.1.1-rc.2, and v0.1.0-rc.8.
 
 ## Development
 
