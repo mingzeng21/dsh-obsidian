@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 Or pin a specific version:
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.5
+dsh plugin --profile web add dsh-obsidian@0.2.6
 ```
 
 Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
