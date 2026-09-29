@@ -5,7 +5,7 @@ import type { VaultAccess } from '../src/access.js'
 
 function fakeCtx() {
   const registered: any[] = []
-  const ctx = { tools: { register: (def: any) => { registered.push(def) } } } as unknown as Context
+  const ctx = { tools: { register: (def: any) => { registered.push(def); return () => {} } } } as unknown as Context
   return { ctx, registered }
 }
 

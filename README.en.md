@@ -63,6 +63,7 @@ dsh plugin --profile web remove dsh-obsidian
 | --- | --- | --- |
 | `vaultPath` | (auto-detected) | Absolute path to the vault; leave empty to auto-detect the currently-open vault from `obsidian.json` |
 | `useCli` | `false` | Delegate `property:set`/`property:remove` to the `obsidian` CLI when available |
+| `vaultWorkspaceOnly` | `false` | Expose `obsidian_*` tools only to agents whose session working directory is inside the vault; agents without a working directory receive no tools |
 | `excludeDirs` | `[".obsidian", ".git", ".trash"]` | Directories excluded from search and list |
 
 ### Paths and Windows compatibility

@@ -63,6 +63,7 @@ dsh plugin --profile web remove dsh-obsidian
 | --- | --- | --- |
 | `vaultPath` | （自动探测） | vault 的绝对路径；留空则按平台从 `obsidian.json` 自动探测当前打开的 vault |
 | `useCli` | `false` | 可用时把 `property:set`/`property:remove` 委托给 `obsidian` CLI |
+| `vaultWorkspaceOnly` | `false` | 仅向工作目录位于 vault 内的 agent 提供 `obsidian_*` 工具；没有工作目录的 agent 不会获得工具 |
 | `excludeDirs` | `[".obsidian", ".git", ".trash"]` | 搜索/列出时排除的目录 |
 
 ### 路径与 Windows 兼容性
