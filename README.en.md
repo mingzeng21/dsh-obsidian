@@ -66,17 +66,6 @@ dsh plugin --profile web remove dsh-obsidian
 | `vaultWorkspaceOnly` | `false` | Expose `obsidian_*` tools only to agents whose session working directory is inside the vault; agents without a working directory receive no tools |
 | `excludeDirs` | `[".obsidian", ".git", ".trash"]` | Directories excluded from search and list |
 
-To show Obsidian tools only in DSH workspaces inside the vault, set this in the active profile's `cordis.patch.yml`:
-
-```yaml
-- id: obsidian
-  config:
-    vaultPath: /absolute/path/to/ObsidianVault
-    vaultWorkspaceOnly: true
-```
-
-“Workspace” means the working directory selected when the session is created. With this option enabled, sessions outside the vault do not receive the `obsidian_*` tool definitions. It does not change file access through other tools such as `bash`. The default `false` preserves access to Obsidian tools from any workspace.
-
 ### Paths and Windows compatibility
 
 - Tool paths are vault-relative and are always returned with `/`; inputs may use either `/` or `\\`.
@@ -132,6 +121,15 @@ npm test           # vitest
 ### 0.2.6
 
 - Add the optional `vaultWorkspaceOnly` setting to expose `obsidian_*` tools only to agents whose working directory is inside the vault. It defaults to `false` to preserve cross-workspace access.
+
+To show Obsidian tools only in DSH workspaces inside the vault, set this in the active profile's `cordis.patch.yml`:
+
+```yaml
+- id: obsidian
+  config:
+    vaultPath: /absolute/path/to/ObsidianVault
+    vaultWorkspaceOnly: true
+```
 
 ### 0.2.5
 

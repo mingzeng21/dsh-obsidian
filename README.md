@@ -66,17 +66,6 @@ dsh plugin --profile web remove dsh-obsidian
 | `vaultWorkspaceOnly` | `false` | 仅向工作目录位于 vault 内的 agent 提供 `obsidian_*` 工具；没有工作目录的 agent 不会获得工具 |
 | `excludeDirs` | `[".obsidian", ".git", ".trash"]` | 搜索/列出时排除的目录 |
 
-如果只想让 vault 内的 DSH 工作区看到 Obsidian 工具，在所用 profile 的 `cordis.patch.yml` 中设置：
-
-```yaml
-- id: obsidian
-  config:
-    vaultPath: /你的/ObsidianVault/绝对路径
-    vaultWorkspaceOnly: true
-```
-
-这里的“工作区”指会话创建时选定的工作目录。开启后，库外工作区不会获得 `obsidian_*` 工具定义；其他工具（例如 `bash`）的文件访问权限不受这个配置影响。默认 `false` 保持跨工作区使用 Obsidian 工具的原有行为。
-
 ### 路径与 Windows 兼容性
 
 - 工具返回的路径始终是相对于 vault 根目录、使用 `/` 的路径；输入可以使用 `/` 或 `\\`。
@@ -132,6 +121,15 @@ npm test           # vitest
 ### 0.2.6
 
 - 新增 `vaultWorkspaceOnly` 配置：可选择只向工作目录位于 vault 内的 agent 提供 `obsidian_*` 工具；默认关闭，保持现有跨工作区用法。
+
+如果只想让 vault 内的 DSH 工作区看到 Obsidian 工具，在所用 profile 的 `cordis.patch.yml` 中设置：
+
+```yaml
+- id: obsidian
+  config:
+    vaultPath: /你的/ObsidianVault/绝对路径
+    vaultWorkspaceOnly: true
+```
 
 ### 0.2.5
 
