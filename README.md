@@ -2,7 +2,7 @@
 
 把 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）连接到本地 [Obsidian](https://obsidian.md) vault。因为一个 Obsidian vault 本质上就是磁盘上的一堆 Markdown 文件，所以你的 `dsh` agent 可以直接搜索、读取、写入、移动和删除（移入回收站）笔记——**不需要 MCP server，也不需要 OAuth**。
 
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.2.0-rc.2 verified](https://img.shields.io/badge/dsh-v0.2.0--rc.2%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.2.1-alpha.3 verified](https://img.shields.io/badge/dsh-v0.2.1--alpha.3%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-alpha.3)
 
 中文 | [English](README.en.md)
 
@@ -105,7 +105,7 @@ dsh plugin --profile web remove dsh-obsidian
 - [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）
 - Node.js ≥ 22.12.0
 
-已完成对 `dsh` v0.2.0-rc.2 的兼容验证：新版 profile 加载器接受插件 bundle，12 个工具成功注册，`obsidian_list` 与 `obsidian_read` 已在临时 vault 上通过调用验证。此前还验证过 v0.1.7-rc.2、v0.1.5-alpha.1、v0.1.3-alpha.2、v0.1.3-alpha.1、v0.1.2-rc.1、v0.1.2-alpha.5、v0.1.2-alpha.4、v0.1.2-alpha.3、v0.1.2-alpha.2、v0.1.2-alpha.1、v0.1.1-rc.2 与 v0.1.0-rc.8。
+已针对 [`dsh` v0.2.1-alpha.3](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-alpha.3) 核对兼容性：本机运行中的 Web profile 通过 `link:` 引用本仓库并启用了此插件；该版本仍支持插件使用的 `apply`、`defineTool`、`ctx.tools.register` 和 agent 生命周期事件。本项目的类型检查、构建和 112 项测试均通过。此前还在 `dsh` v0.2.0-rc.2 上验证过新版 profile 加载器接受插件 bundle、12 个工具成功注册，以及 `obsidian_list` 和 `obsidian_read` 在临时 vault 上的调用。更早的验证覆盖 v0.1.7-rc.2、v0.1.5-alpha.1、v0.1.3-alpha.2、v0.1.3-alpha.1、v0.1.2-rc.1、v0.1.2-alpha.5、v0.1.2-alpha.4、v0.1.2-alpha.3、v0.1.2-alpha.2、v0.1.2-alpha.1、v0.1.1-rc.2 与 v0.1.0-rc.8。
 
 ## 开发
 
