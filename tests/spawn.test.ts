@@ -1,7 +1,7 @@
-import { mkdtemp, writeFile, rm } from 'node:fs/promises'
+import { access, mkdtemp, writeFile, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { afterEach, describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { run, binaryAvailable } from '../src/spawn.js'
 
 let tmp: string | undefined
@@ -20,6 +20,22 @@ describe('run', () => {
 
   it('rejects on non-zero exit', async () => {
     await expect(run('node', ['-e', 'process.exit(3)'])).rejects.toThrow(/exited with code 3/)
+  })
+
+  it('aborts a running command', async () => {
+    tmp = await mkdtemp(path.join(os.tmpdir(), 'spawn-'))
+    const ready = path.join(tmp, 'ready')
+    const controller = new AbortController()
+    const result = run(process.execPath, ['-e', `
+      require('node:fs').writeFileSync(process.argv[1], '')
+      setTimeout(() => {}, 3000)
+    `, ready], { signal: controller.signal }).catch((error: unknown) => error)
+    try {
+      await vi.waitFor(() => access(ready), { timeout: 2000 })
+    } finally {
+      controller.abort()
+    }
+    expect(await result).toMatchObject({ name: 'AbortError' })
   })
 })
 

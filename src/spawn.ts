@@ -3,11 +3,13 @@ import { access } from 'node:fs/promises'
 import path from 'node:path'
 
 export interface RunResult { stdout: string; stderr: string }
+interface RunOptions { cwd?: string; signal?: AbortSignal }
 
-export async function run(cmd: string, args: string[], opts: { cwd?: string } = {}): Promise<RunResult> {
-  const executable = await resolveCommand(cmd)
+export async function run(cmd: string, args: string[], opts: RunOptions = {}): Promise<RunResult> {
+  const executable = await resolveCommand(cmd, opts.signal)
+  opts.signal?.throwIfAborted()
   return new Promise((resolve, reject) => {
-    const child = spawnCommand(executable, args, opts.cwd, 'pipe')
+    const child = spawnCommand(executable, args, opts, 'pipe')
     let stdout = ''
     let stderr = ''
     child.stdout.on('data', (d: Buffer) => { stdout += d.toString() })
@@ -22,25 +24,28 @@ export async function run(cmd: string, args: string[], opts: { cwd?: string } = 
 
 const availabilityCache = new Map<string, boolean>()
 
-export async function binaryAvailable(cmd: string): Promise<boolean> {
+export async function binaryAvailable(cmd: string, signal?: AbortSignal): Promise<boolean> {
+  signal?.throwIfAborted()
   const cached = availabilityCache.get(cmd)
   if (cached !== undefined) return cached
-  const executable = await resolveCommand(cmd)
+  const executable = await resolveCommand(cmd, signal)
+  signal?.throwIfAborted()
   let available = false
   try {
     available = await new Promise<boolean>((resolve) => {
-      const child = spawnCommand(executable, ['--version'], undefined, 'ignore')
+      const child = spawnCommand(executable, ['--version'], { signal }, 'ignore')
       child.on('error', () => resolve(false))
       child.on('exit', (code) => resolve(code === 0))
     })
   } catch {
     available = false
   }
+  signal?.throwIfAborted()
   availabilityCache.set(cmd, available)
   return available
 }
 
-async function resolveCommand(cmd: string): Promise<string> {
+async function resolveCommand(cmd: string, signal?: AbortSignal): Promise<string> {
   if (process.platform !== 'win32') return cmd
   const hasPath = cmd.includes('\\') || cmd.includes('/') || path.win32.isAbsolute(cmd)
   const hasExecutableExtension = /\.(?:com|exe|bat|cmd)$/i.test(cmd)
@@ -51,6 +56,7 @@ async function resolveCommand(cmd: string): Promise<string> {
     : (process.env.PATH ?? '').split(path.delimiter).filter(Boolean).flatMap((dir) =>
         names.map((name) => path.win32.join(dir.replace(/^"|"$/g, ''), name)))
   for (const candidate of candidates) {
+    signal?.throwIfAborted()
     try {
       await access(candidate)
       return candidate
@@ -68,14 +74,14 @@ function windowsPathExtensions(): string[] {
     .map((ext) => ext.toLowerCase())
 }
 
-function spawnCommand(cmd: string, args: string[], cwd: string | undefined, stdio: 'pipe'): ChildProcessWithoutNullStreams
-function spawnCommand(cmd: string, args: string[], cwd: string | undefined, stdio: 'ignore'): ChildProcess
-function spawnCommand(cmd: string, args: string[], cwd?: string, stdio: 'pipe' | 'ignore' = 'pipe') {
+function spawnCommand(cmd: string, args: string[], opts: RunOptions, stdio: 'pipe'): ChildProcessWithoutNullStreams
+function spawnCommand(cmd: string, args: string[], opts: RunOptions, stdio: 'ignore'): ChildProcess
+function spawnCommand(cmd: string, args: string[], opts: RunOptions, stdio: 'pipe' | 'ignore') {
   const isWindowsScript = process.platform === 'win32' && /\.(?:bat|cmd)$/i.test(cmd)
   if (!isWindowsScript) {
     return stdio === 'pipe'
-      ? spawn(cmd, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] })
-      : spawn(cmd, args, { cwd, stdio: 'ignore' })
+      ? spawn(cmd, args, { ...opts, stdio: ['ignore', 'pipe', 'pipe'] })
+      : spawn(cmd, args, { ...opts, stdio: 'ignore' })
   }
   if ([cmd, ...args].some((value) => /[%!&|<>^"();\r\n]/.test(value))) {
     throw new Error('refusing unsafe arguments for a Windows command script')
@@ -84,7 +90,7 @@ function spawnCommand(cmd: string, args: string[], cwd?: string, stdio: 'pipe' |
   const commandLine = [quoteWindowsArg(cmd), ...args.map(quoteWindowsArg)].join(' ')
   const shellCommand = commandLine.startsWith('"') ? `"${commandLine}"` : commandLine
   return spawn(comspec, ['/d', '/s', '/c', shellCommand], {
-    cwd,
+    ...opts,
     stdio: stdio === 'pipe' ? ['ignore', 'pipe', 'pipe'] : 'ignore',
     windowsVerbatimArguments: true,
   })

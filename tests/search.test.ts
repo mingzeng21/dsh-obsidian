@@ -74,6 +74,10 @@ describe('searchVault', () => {
       await expect(searchWithoutRg(vault, [], 'keyword')).resolves.toMatchObject([
         { path: 'fallback.md', line: 1, lineText: 'fallback keyword' },
       ])
+      const controller = new AbortController()
+      const pending = searchWithoutRg(vault, [], 'keyword', {}, controller.signal)
+      controller.abort()
+      await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
     } finally {
       process.env.PATH = previousPath
     }

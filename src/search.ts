@@ -21,11 +21,13 @@ export async function searchVault(
   excludeDirs: string[],
   query: string,
   opts: SearchOptions = {},
+  signal?: AbortSignal,
 ): Promise<SearchHit[]> {
   const context = opts.context ?? 1
   const limit = opts.limit ?? 50
   const base = opts.dir ? guardPath(vaultRoot, opts.dir) : vaultRoot
-  const matches = await rawMatches(base, excludeDirs, query)
+  const matches = await rawMatches(base, excludeDirs, query, signal)
+  signal?.throwIfAborted()
   matches.sort((a, b) => (a.file === b.file ? a.line - b.line : a.file < b.file ? -1 : 1))
   const hits: SearchHit[] = []
   const cache = new Map<string, string[]>()
@@ -33,7 +35,7 @@ export async function searchVault(
     if (hits.length >= limit) break
     let lines = cache.get(file)
     if (!lines) {
-      lines = (await readFile(file, 'utf8')).split(/\r?\n/)
+      lines = (await readFile(file, { encoding: 'utf8', signal })).split(/\r?\n/)
       cache.set(file, lines)
     }
     const idx = line - 1
@@ -49,32 +51,40 @@ export async function searchVault(
   return hits
 }
 
-export async function walkMarkdownFiles(dir: string, excludeDirs: string[]): Promise<string[]> {
+export async function walkMarkdownFiles(dir: string, excludeDirs: string[], signal?: AbortSignal): Promise<string[]> {
   const files: string[] = []
-  let entries
-  try {
-    entries = await readdir(dir, { withFileTypes: true })
-  } catch {
-    return files
-  }
-  for (const e of entries) {
-    if (e.name.startsWith('.') || excludeDirs.includes(e.name)) continue
-    const full = path.join(dir, e.name)
-    if (e.isDirectory()) files.push(...(await walkMarkdownFiles(full, excludeDirs)))
-    else if (isMarkdownFile(e.name)) files.push(full)
-  }
+  await visit(dir)
   return files
+
+  async function visit(directory: string): Promise<void> {
+    signal?.throwIfAborted()
+    let entries
+    try {
+      entries = await readdir(directory, { withFileTypes: true })
+    } catch {
+      signal?.throwIfAborted()
+      return
+    }
+    signal?.throwIfAborted()
+    for (const entry of entries) {
+      if (entry.name.startsWith('.') || excludeDirs.includes(entry.name)) continue
+      const full = path.join(directory, entry.name)
+      if (entry.isDirectory()) await visit(full)
+      else if (isMarkdownFile(entry.name)) files.push(full)
+    }
+  }
 }
 
-async function rawMatches(base: string, excludeDirs: string[], query: string): Promise<RawMatch[]> {
+async function rawMatches(base: string, excludeDirs: string[], query: string, signal?: AbortSignal): Promise<RawMatch[]> {
   try {
-    if (await binaryAvailable('rg')) {
-      return await rgMatches(base, excludeDirs, query)
+    if (await binaryAvailable('rg', signal)) {
+      return await rgMatches(base, excludeDirs, query, signal)
     }
   } catch {
-    // fall through to the JS scan
+    signal?.throwIfAborted()
+    // Fall through to the JS scan if the optional command failed.
   }
-  return jsMatches(base, excludeDirs, query)
+  return jsMatches(base, excludeDirs, query, signal)
 }
 
 export function rgArgs(query: string, excludeDirs: string[]): string[] {
@@ -83,10 +93,11 @@ export function rgArgs(query: string, excludeDirs: string[]): string[] {
   return args
 }
 
-async function rgMatches(base: string, excludeDirs: string[], query: string): Promise<RawMatch[]> {
+async function rgMatches(base: string, excludeDirs: string[], query: string, signal?: AbortSignal): Promise<RawMatch[]> {
   const args = rgArgs(query, excludeDirs)
   args.push(base)
-  const { stdout } = await run('rg', args)
+  const { stdout } = await run('rg', args, { signal })
+  signal?.throwIfAborted()
   const out: RawMatch[] = []
   for (const line of stdout.split('\n')) {
     if (!line) continue
@@ -104,11 +115,11 @@ async function rgMatches(base: string, excludeDirs: string[], query: string): Pr
   return out.filter((m) => isMarkdownFile(m.file))
 }
 
-async function jsMatches(base: string, excludeDirs: string[], query: string): Promise<RawMatch[]> {
+async function jsMatches(base: string, excludeDirs: string[], query: string, signal?: AbortSignal): Promise<RawMatch[]> {
   const needle = query
   const out: RawMatch[] = []
-  for (const file of await walkMarkdownFiles(base, excludeDirs)) {
-    const lines = (await readFile(file, 'utf8')).split(/\r?\n/)
+  for (const file of await walkMarkdownFiles(base, excludeDirs, signal)) {
+    const lines = (await readFile(file, { encoding: 'utf8', signal })).split(/\r?\n/)
     lines.forEach((text, i) => {
       if (includesFolded(text, needle)) out.push({ file, line: i + 1 })
     })

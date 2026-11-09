@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
 import { registerTools } from '../src/tools.js'
 import type { VaultAccess } from '../src/access.js'
+import { FsAccess } from '../src/fs-access.js'
 
 function fakeCtx() {
   const registered: any[] = []
@@ -42,5 +46,25 @@ describe('registerTools', () => {
     const readTool = registered.find((d) => d.name === 'obsidian_read')
     const value = await readTool.execute({ path: 'a.md' }, { signal: new AbortController().signal } as any)
     expect(value).toEqual({ path: 'a.md', title: 'a', frontmatter: null, content: 'body' })
+  })
+
+  it.each([
+    { name: 'obsidian_backlinks', args: { path: 'a.md' } },
+    { name: 'obsidian_search', args: { query: 'body' } },
+    { name: 'obsidian_tags', args: {} },
+  ])('$name honors cancellation from the host', async ({ name, args }) => {
+    const vault = await mkdtemp(path.join(os.tmpdir(), 'vault-'))
+    try {
+      await writeFile(path.join(vault, 'a.md'), 'body #tag')
+      const { ctx, registered } = fakeCtx()
+      registerTools(ctx, new FsAccess(vault, []))
+      const tool = registered.find((d) => d.name === name)
+      const controller = new AbortController()
+      const result = tool.execute(args, { signal: controller.signal })
+      controller.abort()
+      await expect(result).rejects.toMatchObject({ name: 'AbortError' })
+    } finally {
+      await rm(vault, { recursive: true, force: true })
+    }
   })
 })

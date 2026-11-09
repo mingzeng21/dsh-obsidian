@@ -26,18 +26,28 @@ export function stripMd(p: string): string {
 }
 
 export function sameNotePath(a: string, b: string): boolean {
-  const left = normalizeNotePath(a)
-  const right = normalizeNotePath(b)
-  return process.platform === 'win32' ? foldCase(left) === foldCase(right) : left === right
+  return notePathKey(normalizeNotePath(a)) === notePathKey(normalizeNotePath(b))
 }
 
-export function resolveLinkTarget(target: string, notePaths: string[]): string | null {
-  const t = stripMd(target)
-  const candidates = notePaths.map((p) => stripMd(p))
-  const targetKey = process.platform === 'win32' ? foldCase(t) : t
-  const matches = candidates.filter((p) => {
-    const candidateKey = process.platform === 'win32' ? foldCase(p) : p
-    return candidateKey === targetKey || candidateKey.endsWith('/' + targetKey)
-  })
-  return matches.length === 1 ? matches[0] : null
+function notePathKey(p: string): string {
+  return process.platform === 'win32' ? foldCase(p) : p
+}
+
+export type LinkResolver = (target: string) => string | null
+
+export function createLinkResolver(notePaths: string[]): LinkResolver {
+  const pathsBySuffix = new Map<string, string | null>()
+  for (const notePath of notePaths) {
+    const candidate = stripMd(notePath)
+    const key = notePathKey(candidate)
+    // Full paths and shorter suffixes share the same ambiguity rules.
+    for (let start = 0; ; ) {
+      const suffix = key.slice(start)
+      pathsBySuffix.set(suffix, pathsBySuffix.has(suffix) ? null : candidate)
+      const slash = key.indexOf('/', start)
+      if (slash === -1) break
+      start = slash + 1
+    }
+  }
+  return (target) => pathsBySuffix.get(notePathKey(stripMd(target))) ?? null
 }

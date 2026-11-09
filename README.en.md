@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 Or pin a specific version:
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.6
+dsh plugin --profile web add dsh-obsidian@0.2.7
 ```
 
 Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
@@ -119,6 +119,11 @@ npm test           # vitest
 ```
 
 ## Changelog
+
+### 0.2.7
+
+- Fix slow `obsidian_backlinks` queries in large vaults by indexing note paths once per call. Note moves reuse the same index when updating links. [Issue #4](https://github.com/mingzeng21/dsh-obsidian/issues/4)
+- Support cancellation during `obsidian_backlinks`, `obsidian_search`, and `obsidian_tags` scans.
 
 ### 0.2.6
 
