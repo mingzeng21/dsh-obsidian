@@ -38,10 +38,12 @@ export async function detectVaultRootFromAppConfig(
   return null
 }
 
+export class VaultNotConfiguredError extends Error {}
+
 export function resolveVaultRoot(configVaultPath: string | undefined, detected: string | null): string {
   if (configVaultPath) return path.resolve(configVaultPath)
   if (detected) return detected
-  throw new Error('Obsidian vault not configured: set `vaultPath` in plugin config, or open a vault in Obsidian')
+  throw new VaultNotConfiguredError('Obsidian vault not configured: set `vaultPath` in plugin config, or open a vault in Obsidian')
 }
 
 export function normalizeVaultPath(p: string): string {

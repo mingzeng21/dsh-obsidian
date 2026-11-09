@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 Or pin a specific version:
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.7
+dsh plugin --profile web add dsh-obsidian@0.2.8
 ```
 
 Restart the harness (`dsh web`) or refresh the Web UI after updating; verify with `dsh plugin --profile web list`.
@@ -58,6 +58,8 @@ dsh plugin --profile web remove dsh-obsidian
 ```
 
 ## Configuration
+
+In the DSH v0.2.2-rc.1 Web UI, open **Plugins → dsh-obsidian → obsidian component → Configure** and select **Save configuration** after editing. Leave `vaultPath` blank to auto-detect a vault. The DSH host log records the resolved path. You can also edit the profile's `cordis.patch.yml`.
 
 | Key | Default | Description |
 | --- | --- | --- |
@@ -119,6 +121,10 @@ npm test           # vitest
 ```
 
 ## Changelog
+
+### 0.2.8
+
+- Add a DSH Web configuration form for the vault path, Obsidian CLI, workspace scope, and excluded directories. Saved settings take effect immediately, and the host log records the resolved vault path. [Issue #5](https://github.com/mingzeng21/dsh-obsidian/issues/5)
 
 ### 0.2.7
 

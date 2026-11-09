@@ -2,9 +2,12 @@ import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import type { Context } from '@deepseek-ai/cordis'
 import { apply } from '../src/index.js'
+import { setupAccess } from '../src/detect.js'
+import { FsAccess } from '../src/fs-access.js'
+import { VaultNotConfiguredError } from '../src/vault-path.js'
 
 vi.mock('../src/detect.js', () => ({
-  setupAccess: async () => ({ vaultRoot: path.resolve('/tmp/vault'), access: {} }),
+  setupAccess: vi.fn(async () => ({ vaultRoot: path.resolve('/tmp/vault'), access: {} })),
 }))
 
 function toolScope() {
@@ -30,6 +33,7 @@ function host(existing: ReturnType<typeof fakeAgent>[] = []) {
   const ctx = {
     tools: global.ctx.tools,
     agents: { list: () => existing.map(({ agent }) => agent) },
+    logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
     on: (event: string, listener: (payload: { agent: any }) => void) => {
       listeners.set(event, listener)
       return () => { listeners.delete(event); return true }
@@ -68,5 +72,37 @@ describe('vaultWorkspaceOnly', () => {
     h.dispose()
     expect(existing.tools.size).toBe(0)
     expect(nested.tools.size).toBe(0)
+  })
+
+  it('withdraws the old tools while the active vault and workspace scope change', async () => {
+    const nextVault = path.resolve('/tmp/other-vault')
+    const inside = fakeAgent(nextVault)
+    const outside = fakeAgent(path.resolve('/tmp/vault'))
+    const h = host([inside, outside])
+    let current = config
+    await apply(h.ctx, { get: () => current })
+    expect(h.global.size).toBe(12)
+
+    current = { ...config, vaultPath: nextVault, vaultWorkspaceOnly: true }
+    vi.mocked(setupAccess).mockResolvedValueOnce({ vaultRoot: nextVault, access: new FsAccess(nextVault, []) })
+    h.emit('loader/volatile-update', undefined)
+    expect(h.global.size).toBe(0)
+    await vi.waitFor(() => expect(inside.tools.size).toBe(12))
+    expect(outside.tools.size).toBe(0)
+
+    h.dispose()
+    expect(inside.tools.size).toBe(0)
+  })
+
+  it('can configure a vault after startup with no auto-detected vault', async () => {
+    const h = host()
+    let current = { ...config, vaultPath: '' }
+    vi.mocked(setupAccess).mockRejectedValueOnce(new VaultNotConfiguredError())
+    await apply(h.ctx, { get: () => current })
+    expect(h.global.size).toBe(0)
+
+    current = config
+    h.emit('loader/volatile-update', undefined)
+    await vi.waitFor(() => expect(h.global.size).toBe(12))
   })
 })

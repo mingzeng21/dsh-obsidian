@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 或锁定具体版本：
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.7
+dsh plugin --profile web add dsh-obsidian@0.2.8
 ```
 
 更新后重启 harness（`dsh web`）或刷新 Web UI；用 `dsh plugin --profile web list` 确认版本。
@@ -58,6 +58,8 @@ dsh plugin --profile web remove dsh-obsidian
 ```
 
 ## 配置
+
+在 DSH v0.2.2-rc.1 的 Web 界面中，打开 **插件 → dsh-obsidian → obsidian 组件 → 配置**，修改后点击 **保存配置**。留空 `vaultPath` 会自动探测 vault，DSH 宿主日志会记录实际使用的路径。也可以在 profile 的 `cordis.patch.yml` 中配置。
 
 | 键 | 默认值 | 说明 |
 | --- | --- | --- |
@@ -119,6 +121,10 @@ npm test           # vitest
 ```
 
 ## 更新日志
+
+### 0.2.8
+
+- 在 DSH Web 的 Obsidian 组件页添加配置表单，可编辑 vault 路径、CLI 开关、工作区限制和排除目录。保存后配置即时生效，宿主日志会记录实际使用的 vault 路径。 [Issue #5](https://github.com/mingzeng21/dsh-obsidian/issues/5)
 
 ### 0.2.7
 
