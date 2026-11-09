@@ -2,7 +2,7 @@
 
 Connect [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`) to a local [Obsidian](https://obsidian.md) vault. Because an Obsidian vault is just a folder of Markdown files on disk, your `dsh` agent can search, read, write, move, and trash notes directly — **no MCP server, no OAuth**.
 
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.2.1-alpha.3 verified](https://img.shields.io/badge/dsh-v0.2.1--alpha.3%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-alpha.3)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.2.2-rc.1 verified](https://img.shields.io/badge/dsh-v0.2.2--rc.1%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1)
 
 [中文](README.md) | English
 
@@ -103,9 +103,11 @@ All tool path arguments are relative to the vault root (e.g. `Folder/note.md`); 
 ## Requirements
 
 - [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`)
-- Node.js ≥ 22.12.0
+- The plugin requires Node.js ≥ 22.12.0. Running [dsh v0.2.2-rc.1](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1) from npm or source requires Node.js ≥ 24.9.0.
 
-Compatibility has been checked against [`dsh` v0.2.1-alpha.3](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-alpha.3): the local running Web profile links this checkout and enables the plugin, and this DSH version still supports the plugin's `apply`, `defineTool`, `ctx.tools.register`, and agent lifecycle APIs. This project passes typecheck and build, and all 112 tests pass. Earlier runtime checks on `dsh` v0.2.0-rc.2 confirmed that the profile loader accepts the bundle, all 12 tools register, and `obsidian_list` and `obsidian_read` execute successfully against a temporary vault. Earlier version checks covered v0.1.7-rc.2, v0.1.5-alpha.1, v0.1.3-alpha.2, v0.1.3-alpha.1, v0.1.2-rc.1, v0.1.2-alpha.5, v0.1.2-alpha.4, v0.1.2-alpha.3, v0.1.2-alpha.2, v0.1.2-alpha.1, v0.1.1-rc.2, and v0.1.0-rc.8.
+`dsh-obsidian@0.2.6` was verified on macOS with the npm release of [dsh v0.2.2-rc.1](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1). All 12 tools registered in the default mode, and `obsidian_write`, `obsidian_list`, and `obsidian_read` ran successfully against a temporary vault. The Web profile also verified `vaultWorkspaceOnly`: tools were visible only to sessions whose initial working directory was inside the vault. The type check, build, and all 112 tests passed.
+
+Earlier checks verified Web profile loading on `dsh` v0.2.1-alpha.3, as well as bundle loading, registration of all 12 tools, and listing and reading notes in a temporary vault on v0.2.0-rc.2. Earlier version checks covered v0.1.7-rc.2, v0.1.5-alpha.1, v0.1.3-alpha.2, v0.1.3-alpha.1, v0.1.2-rc.1, v0.1.2-alpha.5, v0.1.2-alpha.4, v0.1.2-alpha.3, v0.1.2-alpha.2, v0.1.2-alpha.1, v0.1.1-rc.2, and v0.1.0-rc.8.
 
 ## Development
 

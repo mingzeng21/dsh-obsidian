@@ -2,7 +2,7 @@
 
 把 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）连接到本地 [Obsidian](https://obsidian.md) vault。因为一个 Obsidian vault 本质上就是磁盘上的一堆 Markdown 文件，所以你的 `dsh` agent 可以直接搜索、读取、写入、移动和删除（移入回收站）笔记——**不需要 MCP server，也不需要 OAuth**。
 
-[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.2.1-alpha.3 verified](https://img.shields.io/badge/dsh-v0.2.1--alpha.3%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-alpha.3)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) [![Node: >=22.12.0](https://img.shields.io/badge/Node-%3E%3D22.12.0-339933.svg)](https://nodejs.org) [![dsh: v0.2.2-rc.1 verified](https://img.shields.io/badge/dsh-v0.2.2--rc.1%20verified-2ea44f.svg)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1)
 
 中文 | [English](README.en.md)
 
@@ -103,9 +103,11 @@ dsh plugin --profile web remove dsh-obsidian
 ## 环境要求
 
 - [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）
-- Node.js ≥ 22.12.0
+- 插件需要 Node.js ≥ 22.12.0。通过 npm 或源码启动 [dsh v0.2.2-rc.1](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1) 时，宿主需要 Node.js ≥ 24.9.0。
 
-已针对 [`dsh` v0.2.1-alpha.3](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-alpha.3) 核对兼容性：本机运行中的 Web profile 通过 `link:` 引用本仓库并启用了此插件；该版本仍支持插件使用的 `apply`、`defineTool`、`ctx.tools.register` 和 agent 生命周期事件。本项目的类型检查、构建和 112 项测试均通过。此前还在 `dsh` v0.2.0-rc.2 上验证过新版 profile 加载器接受插件 bundle、12 个工具成功注册，以及 `obsidian_list` 和 `obsidian_read` 在临时 vault 上的调用。更早的验证覆盖 v0.1.7-rc.2、v0.1.5-alpha.1、v0.1.3-alpha.2、v0.1.3-alpha.1、v0.1.2-rc.1、v0.1.2-alpha.5、v0.1.2-alpha.4、v0.1.2-alpha.3、v0.1.2-alpha.2、v0.1.2-alpha.1、v0.1.1-rc.2 与 v0.1.0-rc.8。
+已在 macOS 上使用 npm 发布的 [dsh v0.2.2-rc.1](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1) 验证 `dsh-obsidian@0.2.6`。默认模式下 12 个工具均成功注册，`obsidian_write`、`obsidian_list` 和 `obsidian_read` 在临时 vault 上调用成功。Web profile 也验证了 `vaultWorkspaceOnly`，仅初始工作目录位于 vault 内的会话能看到工具。本项目的类型检查、构建和 112 项测试均通过。
+
+此前在 `dsh` v0.2.1-alpha.3 上验证过 Web profile 加载，也在 v0.2.0-rc.2 上验证过 bundle 加载、12 个工具注册和临时 vault 的列出与读取。更早的验证覆盖 v0.1.7-rc.2、v0.1.5-alpha.1、v0.1.3-alpha.2、v0.1.3-alpha.1、v0.1.2-rc.1、v0.1.2-alpha.5、v0.1.2-alpha.4、v0.1.2-alpha.3、v0.1.2-alpha.2、v0.1.2-alpha.1、v0.1.1-rc.2 与 v0.1.0-rc.8。
 
 ## 开发
 
