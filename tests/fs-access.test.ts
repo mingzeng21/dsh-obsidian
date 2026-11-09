@@ -61,6 +61,31 @@ describe('FsAccess', () => {
     expect((await a.backlinks('a/Foo.md')).map((b) => b.path)).toContain('x.md')
   })
 
+  it('leaves a path link ambiguous when both an exact match and a suffix match exist', async () => {
+    const access = new FsAccess(await makeVault(), [])
+    await access.write('a/Foo.md', '# Foo A\n')
+    await access.write('nested/a/Foo.md', '# Foo B\n')
+    await access.write('source.md', 'See [[a/Foo#section|Alias]].\n')
+    expect(await access.backlinks('a/Foo.md')).toEqual([])
+    expect(await access.backlinks('nested/a/Foo.md')).toEqual([])
+  })
+
+  it('finds backlinks in a vault of 5,000 notes with 20 links each', async () => {
+    const access = new FsAccess(await makeVault(), [])
+    const folder = path.join(tmp, 'references')
+    await mkdir(folder)
+    const content = Array.from({ length: 20 }, (_, i) => `[[Reference ${i}]]`).join(' ')
+    for (let start = 0; start < 4998; start += 64) {
+      const size = Math.min(64, 4998 - start)
+      await Promise.all(Array.from({ length: size }, (_, i) =>
+        writeFile(path.join(folder, `Reference ${start + i}.md`), content)))
+    }
+    const start = performance.now()
+    const backlinks = await access.backlinks('notes/one.md')
+    expect(backlinks.map((b) => b.path)).toEqual(['notes/two.md'])
+    expect(performance.now() - start).toBeLessThan(10_000)
+  }, 20_000)
+
   it('finds an aliased backlink for a nested Unicode path', async () => {
     const access = new FsAccess(await makeVault(), [])
     const target = '书籍笔记/01-创伤与解离/创伤心理学-拆解/00-全书概览.md'

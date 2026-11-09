@@ -56,7 +56,7 @@ export function registerTools(ctx: Context, access: VaultAccess): () => void {
         ? [{ type: 'text', text: 'No matches.' }]
         : [{ type: 'text', text: value.map((h: any) => `${h.path}:${h.line}: ${h.lineText}`).join('\n') }],
     },
-    execute: (args) => access.search(args.query, { dir: args.dir, context: args.context, limit: args.limit }),
+    execute: (args, execution) => access.search(args.query, { dir: args.dir, context: args.context, limit: args.limit }, execution.signal),
   })))
 
   unregister.push(ctx.tools.register(defineTool({
@@ -122,7 +122,7 @@ export function registerTools(ctx: Context, access: VaultAccess): () => void {
         ? [{ type: 'text', text: 'No backlinks.' }]
         : [{ type: 'text', text: value.map((b: any) => `${b.path}: ${b.snippet}`).join('\n') }],
     },
-    execute: (args) => access.backlinks(args.path),
+    execute: (args, execution) => access.backlinks(args.path, execution.signal),
   })))
 
   unregister.push(ctx.tools.register(defineTool({
@@ -268,7 +268,7 @@ export function registerTools(ctx: Context, access: VaultAccess): () => void {
         ? [{ type: 'text', text: 'No tags found.' }]
         : [{ type: 'text', text: value.map((t: any) => `${t.tag} (${t.count})`).join('\n') }],
     },
-    execute: (args) => access.listTags({ dir: args.dir }),
+    execute: (args, execution) => access.listTags({ dir: args.dir }, execution.signal),
   })))
   return () => { for (const remove of unregister.reverse()) remove() }
 }
