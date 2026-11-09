@@ -46,7 +46,7 @@ dsh plugin --profile web add dsh-obsidian
 或锁定具体版本：
 
 ```sh
-dsh plugin --profile web add dsh-obsidian@0.2.6
+dsh plugin --profile web add dsh-obsidian@0.2.7
 ```
 
 更新后重启 harness（`dsh web`）或刷新 Web UI；用 `dsh plugin --profile web list` 确认版本。
@@ -119,6 +119,11 @@ npm test           # vitest
 ```
 
 ## 更新日志
+
+### 0.2.7
+
+- 修复 `obsidian_backlinks` 在大 vault 上耗时过长的问题。每次调用只构建一次笔记路径索引，移动笔记时的链接更新也复用这个索引。[Issue #4](https://github.com/mingzeng21/dsh-obsidian/issues/4)
+- `obsidian_backlinks`、`obsidian_search` 和 `obsidian_tags` 支持取消运行中的扫描。
 
 ### 0.2.6
 
